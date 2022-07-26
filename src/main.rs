@@ -38,7 +38,7 @@ async fn google_translate(translate_string: String) -> Result<Vec<Vec<String>>, 
     Ok(result_vec)
 }
 
-fn translate(input_string: String, index: u32) {
+fn translate(input_string: String, index: usize) {
     println!(">>> START[{}]", index);
     let result_vec = google_translate(input_string).unwrap();
     // println!("{:?}", result_vec);
@@ -48,7 +48,8 @@ fn translate(input_string: String, index: u32) {
     }
 }
 
-fn get_select_text() -> Option<String> {
+fn get_select_text() -> String {
+    // return "" at least
     let output = if cfg!(target_os = "linux") {
         Command::new("xsel")
             .output()
@@ -58,16 +59,16 @@ fn get_select_text() -> Option<String> {
     };
     let output = String::from_utf8_lossy(&output.stdout);
     let output_string = output.to_string();
-    let output_replace = output_string.replace("\n", " ");
-    Some(output_replace)
+    let mut output_replace = output_string.replace("-\n", ""); // new line
+    output_replace = output_replace.replace("\n", " ");
+    output_replace
 }
 
 fn main() {
-    let mut index = 1;
+    let mut index: usize = 1;
     loop {
-        let two_sec = Duration::from_secs(2);
-        thread::sleep(two_sec);
-        let selected_text = get_select_text().unwrap();
+        thread::sleep(Duration::from_secs(1));
+        let selected_text = get_select_text();
         if selected_text.trim().len() > 0 {
             // println!("{}", &selected_text);
             // let test_string = String::from("translate");
