@@ -1,8 +1,11 @@
 use colored::Colorize;
 use reqwest;
 use serde_json;
+#[cfg(target_os = "linux")]
 use std::process::Command;
 use std::{thread, time::Duration};
+#[cfg(target_os = "windows")]
+use cli_clipboard;
 
 #[tokio::main]
 async fn google_translate(
@@ -52,34 +55,56 @@ fn translate(input_string: String, index: usize) {
     }
 }
 
-fn get_select_text() -> String {
+#[cfg(target_os = "windows")]
+fn get_clipboard_text_windows() -> Option<String> {
+    let output_string = cli_clipboard::get_contents().unwrap();
+    Some(output_string)
+}
+
+#[cfg(target_os = "linux")]
+fn get_select_text_linux() -> Option<String> {
     // return "" at least
-    let output = if cfg!(target_os = "linux") {
-        Command::new("xsel")
-            .output()
-            .expect("Please install xsel first!")
-    } else {
-        panic!("Not support running at the other system!");
-    };
+    let output = Command::new("xsel")
+        .output()
+        .expect("Please install xsel first!");
     let output = String::from_utf8_lossy(&output.stdout);
     let output_string = output.to_string();
     let output_replace = output_string
         .replace("-\n", "")
         .replace("%", "")
         .replace("\n", " ");
-    output_replace
+    Some(output_replace)
 }
 
 fn main() {
     let mut index: usize = 1;
-    loop {
-        thread::sleep(Duration::from_secs(1));
-        let selected_text = get_select_text();
-        if selected_text.trim().len() > 0 {
-            // println!("{}", &selected_text);
-            // let test_string = String::from("translate");
-            translate(selected_text, index);
-            index += 1;
+    #[cfg(target_os = "linux")]
+    if cfg!(target_os = "linux") {
+        loop {
+            thread::sleep(Duration::from_secs(1));
+            let selected_text = get_select_text_linux().unwrap();
+            if selected_text.trim().len() > 0 {
+                // println!("{}", &selected_text);
+                // let test_string = String::from("translate");
+                translate(selected_text, index);
+                index += 1;
+            }
         }
     }
+    #[cfg(target_os = "windows")]
+    if cfg!(target_os = "windows") {
+        let mut last_clipboard_text = String::from("");
+        loop {
+            thread::sleep(Duration::from_secs(1));
+            let clipboard_text = get_clipboard_text_windows().unwrap();
+            if clipboard_text != last_clipboard_text {
+                last_clipboard_text = clipboard_text.clone();
+                if clipboard_text.trim().len() > 0 {
+                    translate(clipboard_text, index);
+                    index += 1;
+                }
+            }
+        }
+    } 
+    panic!("Not support running at the other system!");
 }
