@@ -12,12 +12,16 @@
 sudo apt install xsel
 ```
 
-## 编译之前请先安装依赖
+将 release 页面下的压缩包解压到本地，之后放到 `/usr/bin` 下或者直接执行即可。
+
+## 如需要自己编译
+
+编译之前请先安装依赖
+
 ```bash
 sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
-将 release 页面下的压缩包解压到本地，之后放到 `/usr/bin` 下或者直接执行即可。
 
 # Windows 使用
 
