@@ -1,7 +1,8 @@
 use std::process::Command;
 use std::{thread, time::Duration};
-use reqwest;
+use colored::Colorize;
 use serde_json;
+use reqwest;
 
 #[tokio::main]
 async fn google_translate(translate_string: String) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
@@ -39,12 +40,13 @@ async fn google_translate(translate_string: String) -> Result<Vec<Vec<String>>, 
 }
 
 fn translate(input_string: String, index: usize) {
-    println!(">>> Translate[{}]", index);
+    let translate_title = format!("Translate[{}]", index);
+    println!(">>> {}", translate_title.bold().red());
     let result_vec = google_translate(input_string).unwrap();
     // println!("{:?}", result_vec);
     for v in result_vec {
-        println!("{}", v[1]);
-        println!("{}", v[0]);
+        println!("[{}] {}", "O".bright_blue().bold(), v[1]);
+        println!("[{}] {}", "T".green().bold(), v[0]);
     }
 }
 
