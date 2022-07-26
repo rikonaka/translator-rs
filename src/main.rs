@@ -39,7 +39,7 @@ async fn google_translate(translate_string: String) -> Result<Vec<Vec<String>>, 
 }
 
 fn translate(input_string: String, index: usize) {
-    println!(">>> START[{}]", index);
+    println!(">>> Translate[{}]", index);
     let result_vec = google_translate(input_string).unwrap();
     // println!("{:?}", result_vec);
     for v in result_vec {
