@@ -12,7 +12,7 @@ sudo apt install xsel
 
 # 使用
 
-将 release 页面下的压缩包解压到本地，之后放到 `/usr/local/bin` 下或者直接执行即可。
+将 release 页面下的压缩包解压到本地，之后放到 `/usr/bin` 下或者直接执行即可。
 
 # 注
 
