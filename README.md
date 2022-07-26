@@ -21,7 +21,7 @@ sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-d
 
 # Windows 使用
 
-下载对应的 Windows 版本之后直接双击运行。
+下载对应的 Windows 版本之后直接双击运行，和 Linux 版本不同的是，Windows 版本鼠标选出要翻译的文字之后，还要再按一个 `ctl-c`。
 
 # 注
 
@@ -29,3 +29,4 @@ release 页面有多个版本下载：
 * Linux 一个版本版本是是使用 `x86_64-unknown-linux-gnu` 静态编译的
 * Linux 另外个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间更小）
 * Windows 一个版本版本是是使用 `x86_64-pc-windows-gnu` 静态编译的
+* ~~Windows 还有一个版本版本是是使用 `x86_64-pc-windows-msvc` 编译的，但是我的 Windows 笔记本上没有 OpenSSL 这个库（又懒得配置），所以就没编译~~

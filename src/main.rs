@@ -1,11 +1,13 @@
-use colored::Colorize;
 use reqwest;
 use serde_json;
-#[cfg(target_os = "linux")]
-use std::process::Command;
 use std::{thread, time::Duration};
+
 #[cfg(target_os = "windows")]
 use cli_clipboard;
+#[cfg(target_os = "linux")]
+use colored::Colorize;
+#[cfg(target_os = "linux")]
+use std::process::Command;
 
 #[tokio::main]
 async fn google_translate(
@@ -46,18 +48,30 @@ async fn google_translate(
 
 fn translate(input_string: String, index: usize) {
     let translate_title = format!("Translate[{}]", index);
+    #[cfg(target_os = "linux")]
     println!(">>> {}", translate_title.bold().red());
+    #[cfg(target_os = "windows")]
+    println!(">>> {}", translate_title);
     let result_vec = google_translate(input_string).unwrap();
     // println!("{:?}", result_vec);
+    #[cfg(target_os = "linux")]
     for v in result_vec {
         println!("[{}] {}", "O".bright_blue().bold(), v[1]);
         println!("[{}] {}", "T".green().bold(), v[0]);
+    }
+    #[cfg(target_os = "windows")]
+    for v in result_vec {
+        println!("[{}] {}", "O", v[1]);
+        println!("[{}] {}", "T", v[0]);
     }
 }
 
 #[cfg(target_os = "windows")]
 fn get_clipboard_text_windows() -> Option<String> {
-    let output_string = cli_clipboard::get_contents().unwrap();
+    let output_string = match cli_clipboard::get_contents() {
+        Ok(o) => o,
+        Err(_) => String::from(""),
+    };
     Some(output_string)
 }
 
@@ -105,6 +119,6 @@ fn main() {
                 }
             }
         }
-    } 
+    }
     panic!("Not support running at the other system!");
 }
