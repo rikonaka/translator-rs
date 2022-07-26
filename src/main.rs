@@ -1,3 +1,4 @@
+use clap::Parser;
 use reqwest;
 use serde_json;
 use std::{thread, time::Duration};
@@ -9,14 +10,41 @@ use colored::Colorize;
 #[cfg(target_os = "linux")]
 use std::process::Command;
 
+/// Simple program to translate text
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// source language
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "english",
+        default_missing_value = "english"
+    )]
+    sl: String,
+
+    /// target translation language
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "chinese",
+        default_missing_value = "chinese"
+    )]
+    tl: String,
+}
+
 #[tokio::main]
 async fn google_translate(
+    sl: &str,
+    tl: &str,
     translate_string: String,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let max_loop = 100;
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dt=t&q={}",
-        "en", "zh-CN", translate_string
+        sl, tl, translate_string
     );
     let request_result = reqwest::get(translate_url)
         .await?
@@ -46,13 +74,13 @@ async fn google_translate(
     Ok(result_vec)
 }
 
-fn translate(input_string: String, index: usize) {
+fn translate(sl: &str, tl: &str, input_string: String, index: usize) {
     let translate_title = format!("Translate[{}]", index);
     #[cfg(target_os = "linux")]
     println!(">>> {}", translate_title.bold().red());
     #[cfg(target_os = "windows")]
     println!(">>> {}", translate_title);
-    let result_vec = google_translate(input_string).unwrap();
+    let result_vec = google_translate(sl, tl, input_string).unwrap();
     // println!("{:?}", result_vec);
     #[cfg(target_os = "linux")]
     for v in result_vec {
@@ -90,7 +118,26 @@ fn get_select_text_linux() -> Option<String> {
     Some(output_replace)
 }
 
+fn convert_args(source_language: String, target_language: String) -> (String, String) {
+    fn _conver_args(language: String) -> String {
+        let result = match language.as_str() {
+            "english" => "en".to_string(),
+            "chinese" => "zh-CN".to_string(),
+            "japanese" => "ja".to_string(),
+            "french" => "fr".to_string(),
+            "german" => "de".to_string(),
+            _ => "en".to_string(),
+        };
+        result
+    }
+    let sl_result = _conver_args(source_language);
+    let tl_result = _conver_args(target_language);
+    (sl_result, tl_result)
+}
+
 fn main() {
+    let args = Args::parse();
+    let (sl, tl) = convert_args(args.sl, args.tl);
     let mut index: usize = 1;
     #[cfg(target_os = "linux")]
     if cfg!(target_os = "linux") {
@@ -100,7 +147,7 @@ fn main() {
             if selected_text.trim().len() > 0 {
                 // println!("{}", &selected_text);
                 // let test_string = String::from("translate");
-                translate(selected_text, index);
+                translate(&sl, &tl, selected_text, index);
                 index += 1;
             }
         }
@@ -114,7 +161,7 @@ fn main() {
             if clipboard_text != last_clipboard_text {
                 last_clipboard_text = clipboard_text.clone();
                 if clipboard_text.trim().len() > 0 {
-                    translate(clipboard_text, index);
+                    translate(&sl, &tl, clipboard_text, index);
                     index += 1;
                 }
             }
