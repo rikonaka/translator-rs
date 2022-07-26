@@ -39,21 +39,20 @@ async fn google_translate(translate_string: String) -> Result<Vec<Vec<String>>, 
 }
 
 fn translate(input_string: String, index: u32) {
-    println!(">>>>>>>>>> START[{}]", index);
+    println!(">>> START[{}]", index);
     let result_vec = google_translate(input_string).unwrap();
     // println!("{:?}", result_vec);
     for v in result_vec {
         println!("{}", v[1]);
         println!("{}", v[0]);
     }
-    println!(">>>>>>>>>> END");
 }
 
 fn get_select_text() -> Option<String> {
     let output = if cfg!(target_os = "linux") {
         Command::new("xsel")
             .output()
-            .expect("failed to execute process")
+            .expect("Please install xsel first!")
     } else {
         panic!("Not support running at the other system!");
     };
