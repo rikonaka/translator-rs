@@ -1,11 +1,13 @@
+use colored::Colorize;
+use reqwest;
+use serde_json;
 use std::process::Command;
 use std::{thread, time::Duration};
-use colored::Colorize;
-use serde_json;
-use reqwest;
 
 #[tokio::main]
-async fn google_translate(translate_string: String) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
+async fn google_translate(
+    translate_string: String,
+) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let max_loop = 100;
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dt=t&q={}",
@@ -28,7 +30,7 @@ async fn google_translate(translate_string: String) -> Result<Vec<Vec<String>>, 
             _ => {
                 tmp_vec.push(match_string_0.replace("\"", ""));
                 tmp_vec.push(match_string_1.replace("\"", ""));
-            },
+            }
         }
         result_vec.push(tmp_vec);
         i += 1;
@@ -61,8 +63,10 @@ fn get_select_text() -> String {
     };
     let output = String::from_utf8_lossy(&output.stdout);
     let output_string = output.to_string();
-    let mut output_replace = output_string.replace("-\n", ""); // new line
-    output_replace = output_replace.replace("\n", " ");
+    let output_replace = output_string
+        .replace("-\n", "")
+        .replace("%", "")
+        .replace("\n", " ");
     output_replace
 }
 
