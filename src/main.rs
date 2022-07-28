@@ -160,7 +160,7 @@ fn main() {
             if clipboard_text != last_clipboard_text {
                 last_clipboard_text = clipboard_text.clone();
                 if clipboard_text.trim().len() > 0 {
-                    translate(&sl, &tl, clipboard_text, index);
+                    translate(&sl, &tl, &clipboard_text, index);
                     index += 1;
                 }
             }
