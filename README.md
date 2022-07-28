@@ -46,4 +46,5 @@ release 页面有多个版本下载：
 * Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的
 * Linux 另外个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间小）
 * Windows 一个版本版本是使用 `x86_64-pc-windows-gnu` 静态编译的
-* ~~Windows 还有一个版本版本是使用 `x86_64-pc-windows-msvc` 编译的，但是我的 Windows 笔记本上没有 OpenSSL 这个库（又懒得配置），所以就没编译~~
+* Windows 还有一个版本版本是使用 `x86_64-pc-windows-msvc` 静态编译的
+* ARM 唯一一个版本是使用 `aarch64-unknown-linux-gnu` 静态编译的
