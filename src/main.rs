@@ -39,7 +39,7 @@ struct Args {
 async fn google_translate(
     sl: &str,
     tl: &str,
-    translate_string: String,
+    translate_string: &str,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let max_loop = 100;
     let translate_url = format!(
@@ -74,13 +74,13 @@ async fn google_translate(
     Ok(result_vec)
 }
 
-fn translate(sl: &str, tl: &str, input_string: String, index: usize) {
+fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
     let translate_title = format!("Translate[{}]", index);
     #[cfg(target_os = "linux")]
     println!(">>> {}", translate_title.bold().red());
     #[cfg(target_os = "windows")]
     println!(">>> {}", translate_title);
-    let result_vec = google_translate(sl, tl, input_string).unwrap();
+    let result_vec = google_translate(sl, tl, translate_string).unwrap();
     // println!("{:?}", result_vec);
     #[cfg(target_os = "linux")]
     for v in result_vec {
@@ -118,15 +118,15 @@ fn get_select_text_linux() -> Option<String> {
     Some(output_replace)
 }
 
-fn convert_args(source_language: String, target_language: String) -> (String, String) {
-    fn _conver_args(language: String) -> String {
-        let result = match language.as_str() {
-            "english" => "en".to_string(),
-            "chinese" => "zh-CN".to_string(),
-            "japanese" => "ja".to_string(),
-            "french" => "fr".to_string(),
-            "german" => "de".to_string(),
-            _ => "en".to_string(),
+fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
+    fn _conver_args(language: &str) -> &str {
+        let result = match language {
+            "english" => "en",
+            "chinese" => "zh-CN",
+            "japanese" => "ja",
+            "french" => "fr",
+            "german" => "de",
+            _ => "en",
         };
         result
     }
@@ -136,25 +136,24 @@ fn convert_args(source_language: String, target_language: String) -> (String, St
 }
 
 fn main() {
-    let args = Args::parse();
-    let (sl, tl) = convert_args(args.sl, args.tl);
-    let mut index: usize = 1;
-    #[cfg(target_os = "linux")]
-    if cfg!(target_os = "linux") {
+    if cfg!(target_os = "linux") || cfg!(target_os = "windows") {
+        let args = Args::parse();
+        let (sl, tl) = convert_args(&args.sl, &args.tl);
+        let mut index: usize = 1;
+        #[cfg(target_os = "linux")]
         loop {
             thread::sleep(Duration::from_secs(1));
             let selected_text = get_select_text_linux().unwrap();
             if selected_text.trim().len() > 0 {
                 // println!("{}", &selected_text);
                 // let test_string = String::from("translate");
-                translate(&sl, &tl, selected_text, index);
+                translate(&sl, &tl, &selected_text, index);
                 index += 1;
             }
         }
-    }
-    #[cfg(target_os = "windows")]
-    if cfg!(target_os = "windows") {
+        #[cfg(target_os = "windows")]
         let mut last_clipboard_text = String::from("");
+        #[cfg(target_os = "windows")]
         loop {
             thread::sleep(Duration::from_secs(1));
             let clipboard_text = get_clipboard_text_windows().unwrap();
@@ -166,6 +165,7 @@ fn main() {
                 }
             }
         }
+    } else {
+        panic!("Not support running at the other system!");
     }
-    panic!("Not support running at the other system!");
 }
