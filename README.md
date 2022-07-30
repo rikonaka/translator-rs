@@ -48,3 +48,7 @@ release 页面有多个版本下载：
 * Windows 一个版本版本是使用 `x86_64-pc-windows-gnu` 静态编译的
 * Windows 还有一个版本版本是使用 `x86_64-pc-windows-msvc` 静态编译的
 * ARM 唯一一个版本是使用 `aarch64-unknown-linux-gnu` 静态编译的
+
+# 问题
+
+还是无法找到一个可以获得单个单词详细翻译的 API...
