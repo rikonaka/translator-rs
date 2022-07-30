@@ -2,6 +2,8 @@
 
 一个用 rust 写的 PDF 论文简单实时翻译，翻译 API 为 Google 提供（主要支持 Linux 用户，Windows 用户也可以用但是貌似有比这还好的软件？）。
 
+* 支持单个单词查看详细相似翻译
+
 ![example](./vids/example.gif)
 
 # Linux 使用
@@ -14,6 +16,10 @@ sudo apt install xsel
 
 将 release 页面下的压缩包解压到本地，之后放到 `/usr/bin` 下或者直接执行即可。
 
+## 使用
+
+直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome 桌面环境上测试过，没有在 KDE 或者其他桌面测试过）
+
 ## 如需要自己编译
 
 编译之前请先安装依赖
@@ -22,6 +28,9 @@ sudo apt install xsel
 sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
+## 测试
+
+执行命令 `cargo run` 之前先得将 `.cargo/config.toml` 这个配置文件改成一个不能被 cargo 识别的配置名字（如 `config.toml.bak`）。
 
 # Windows 使用
 
@@ -46,9 +55,5 @@ release 页面有多个版本下载：
 * Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的
 * Linux 另外个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间小）
 * Windows 一个版本版本是使用 `x86_64-pc-windows-gnu` 静态编译的
-* Windows 还有一个版本版本是使用 `x86_64-pc-windows-msvc` 静态编译的
+* ~~Windows 还有一个版本版本是使用 `x86_64-pc-windows-msvc` 静态编译的（从 v0.1.7 版本之后懒得回 Windows 再编译一遍）~~
 * ARM 唯一一个版本是使用 `aarch64-unknown-linux-gnu` 静态编译的
-
-# 问题
-
-还是无法找到一个可以获得单个单词详细翻译的 API...
