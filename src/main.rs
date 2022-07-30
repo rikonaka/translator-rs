@@ -36,7 +36,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn google_translate(
+async fn google_translate_longstring(
     sl: &str,
     tl: &str,
     translate_string: &str,
@@ -74,13 +74,46 @@ async fn google_translate(
     Ok(result_vec)
 }
 
+#[tokio::main]
+async fn google_translate_shortstring(
+    sl: &str,
+    tl: &str,
+    translate_string: &str,
+) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
+    let max_loop = 100;
+    let translate_url = format!(
+        "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dj=1&dt=t&dt=bd&dt=qc&dt=rm&dt=ex&dt=at&dt=ss&dt=rw&dt=ld&q={}&button&tk=233819.233819"
+        sl, tl, translate_string
+    );
+    let request_result = reqwest::get(translate_url)
+        .await?
+        .json::<serde_json::Value>()
+        .await?;
+    // println!("{:#?}", request_result);
+    // {"sentences":[{"trans":"这","orig":"The","backend":10},{"translit":"Zhè"}],"src":"en","alternative_translations":[{"src_phrase":"The","alternative":[{"word_postproc":"这","score":1000,"has_preceding_space":true,"attach_to_next_token":false,"backends":[10]},{"word_postproc":"该","score":0,"has_preceding_space":true,"attach_to_next_token":false,"backends":[3],"backend_infos":[{"backend":3}]},{"word_postproc":"那个","score":0,"has_preceding_space":true,"attach_to_next_token":false,"backends":[8]}],"srcunicodeoffsets":[{"begin":0,"end":3}],"raw_src_segment":"The","start_pos":0,"end_pos":0}],"confidence":1.0,"spell":{},"ld_result":{"srclangs":["en"],"srclangs_confidences":[1.0],"extended_srclangs":["en"]}}
+    let mut i = 0;
+    let mut result_vec: Vec<Vec<String>> = Vec::new();
+    loop {
+        let match_string_0 = format!("{}", request_result.get("sentences"));
+        let match_string_1 = format!("{}", request_result.get("alternative_translations"));
+        println!("{}", match_string_0);
+        println!("{}", match_string_1);
+        i += 1;
+        if i > max_loop {
+            break;
+        }
+    }
+    Ok(result_vec)
+}
+
 fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
     let translate_title = format!("Translate[{}]", index);
     #[cfg(target_os = "linux")]
     println!(">>> {}", translate_title.bold().red());
     #[cfg(target_os = "windows")]
     println!(">>> {}", translate_title);
-    let result_vec = google_translate(sl, tl, translate_string).unwrap();
+    if translate_string.contains(".") || translate_string.contains(" ")
+    let result_vec = google_translate_longstring(sl, tl, translate_string).unwrap();
     // println!("{:?}", result_vec);
     #[cfg(target_os = "linux")]
     for v in result_vec {
@@ -97,7 +130,7 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
 #[cfg(target_os = "windows")]
 fn get_clipboard_text_windows() -> Option<String> {
     let output_string = match cli_clipboard::get_contents() {
-        Ok(o) => o,
+        Ok(o) => o.trim().to_string(),
         Err(_) => String::from(""),
     };
     Some(output_string)
@@ -114,7 +147,9 @@ fn get_select_text_linux() -> Option<String> {
     let output_replace = output_string
         .replace("-\n", "")
         .replace("%", "")
-        .replace("\n", " ");
+        .replace("\n", " ")
+        .trim()
+        .to_string();
     Some(output_replace)
 }
 
