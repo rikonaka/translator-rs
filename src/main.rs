@@ -82,7 +82,7 @@ async fn google_translate_shortstring(
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let max_loop = 100;
     let translate_url = format!(
-        "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dj=1&dt=t&dt=bd&dt=qc&dt=rm&dt=ex&dt=at&dt=ss&dt=rw&dt=ld&q={}&button&tk=233819.233819"
+        "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dj=1&dt=t&dt=bd&dt=qc&dt=rm&dt=ex&dt=at&dt=ss&dt=rw&dt=ld&q={}&button&tk=233819.233819",
         sl, tl, translate_string
     );
     let request_result = reqwest::get(translate_url)
@@ -94,8 +94,8 @@ async fn google_translate_shortstring(
     let mut i = 0;
     let mut result_vec: Vec<Vec<String>> = Vec::new();
     loop {
-        let match_string_0 = format!("{}", request_result.get("sentences"));
-        let match_string_1 = format!("{}", request_result.get("alternative_translations"));
+        let match_string_0 = format!("{}", request_result.get("sentences").unwrap());
+        let match_string_1 = format!("{}", request_result.get("alternative_translations").unwrap());
         println!("{}", match_string_0);
         println!("{}", match_string_1);
         i += 1;
@@ -112,8 +112,11 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
     println!(">>> {}", translate_title.bold().red());
     #[cfg(target_os = "windows")]
     println!(">>> {}", translate_title);
-    if translate_string.contains(".") || translate_string.contains(" ")
-    let result_vec = google_translate_longstring(sl, tl, translate_string).unwrap();
+    let result_vec = if translate_string.contains(".") || translate_string.contains(" ") {
+        google_translate_longstring(sl, tl, translate_string).unwrap()
+    } else {
+        google_translate_shortstring(sl, tl, translate_string).unwrap()
+    };
     // println!("{:?}", result_vec);
     #[cfg(target_os = "linux")]
     for v in result_vec {
