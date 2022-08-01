@@ -118,7 +118,10 @@ async fn google_translate_shortword(
             _ => break,
         };
         let alter_string = format!("{}", av);
-        tmp_vec.push(alter_string.replace("\"", ""));
+        // jump the first word
+        if i != 0 {
+            tmp_vec.push(alter_string.replace("\"", ""));
+        }
         i += 1;
     }
     result_vec.push(tmp_vec);
@@ -126,10 +129,7 @@ async fn google_translate_shortword(
 }
 
 fn contains_symbol(input_string: &str) -> bool {
-    if input_string.contains(" ") {
-        return true;
-    }
-    false
+    input_string.contains(" ")
 }
 
 fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
@@ -140,7 +140,7 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
     println!(">>> {}", translate_title);
     let result_vec =  match contains_symbol(translate_string) {
         true => google_translate_longstring(sl, tl, translate_string).unwrap(),
-        _ => google_translate_shortword(sl, tl, translate_string).unwrap(),
+        false => google_translate_shortword(sl, tl, translate_string).unwrap(),
     };
     // println!("{:?}", result_vec);
     #[cfg(target_os = "linux")]
