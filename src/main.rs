@@ -88,6 +88,7 @@ async fn google_translate_shortword(
             .replace("?", "")
             .replace("!", "")
             .replace(":", "")
+            .replace("\"", "")
             .replace("。", "")
             .replace("，", "")
             .replace("：", "")
