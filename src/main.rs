@@ -81,9 +81,22 @@ async fn google_translate_shortword(
     tl: &str,
     translate_string: &str,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
+    let translate_string_replace = |x: &str| -> String {
+        translate_string
+            .replace(".", "")
+            .replace(",", "")
+            .replace("?", "")
+            .replace("!", "")
+            .replace(":", "")
+            .replace("。", "")
+            .replace("，", "")
+            .replace("：", "")
+            .replace("“", "")
+            .replace("”", "")
+    };
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dj=1&dt=t&dt=bd&dt=qc&dt=rm&dt=ex&dt=at&dt=ss&dt=rw&dt=ld&q={}&button&tk=233819.233819",
-        sl, tl, translate_string.replace(".", "").replace(",", "").replace("?", "").replace("!", "")
+        sl, tl, translate_string_replace(translate_string)
     );
     let request_result = reqwest::get(translate_url)
         .await?
@@ -138,7 +151,7 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
     println!(">>> {}", translate_title.bold().red());
     #[cfg(target_os = "windows")]
     println!(">>> {}", translate_title);
-    let result_vec =  match contains_symbol(translate_string) {
+    let result_vec = match contains_symbol(translate_string) {
         true => google_translate_longstring(sl, tl, translate_string).unwrap(),
         false => google_translate_shortword(sl, tl, translate_string).unwrap(),
     };
