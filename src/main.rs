@@ -82,8 +82,7 @@ async fn google_translate_shortword(
     translate_string: &str,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let convert_string = |x: &str| -> String {
-        translate_string
-            .replace(".", "")
+        x.replace(".", "")
             .replace(",", "")
             .replace("?", "")
             .replace("!", "")
