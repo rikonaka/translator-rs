@@ -192,8 +192,8 @@ fn get_select_text_linux() -> Option<String> {
 }
 
 fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
-    fn _conver_args(language: &str) -> &str {
-        let result = match language {
+    let convert_language = |x: &str| -> &str {
+        let result = match x {
             "english" => "en",
             "chinese" => "zh-CN",
             "japanese" => "ja",
@@ -202,9 +202,9 @@ fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a 
             _ => "en",
         };
         result
-    }
-    let sl_result = _conver_args(source_language);
-    let tl_result = _conver_args(target_language);
+    };
+    let sl_result = convert_language(source_language);
+    let tl_result = convert_language(target_language);
     (sl_result, tl_result)
 }
 
