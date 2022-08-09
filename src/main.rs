@@ -197,7 +197,7 @@ fn get_select_text_linux() -> Option<String> {
     let output_string = output.to_string();
     let output_replace = output_string
         .replace("-\n", "")
-        .replace("%", "")
+        .replace("%", "%25")
         .replace("\n", " ")
         .trim()
         .to_string();
