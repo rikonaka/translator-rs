@@ -198,6 +198,7 @@ fn get_select_text_linux() -> Option<String> {
     let output_replace = output_string
         .replace("-\n", "")
         .replace("%", "%25")
+        .replace("&", "%26")
         .replace("\n", " ")
         .trim()
         .to_string();
