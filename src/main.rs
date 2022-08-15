@@ -152,27 +152,41 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
     #[cfg(target_os = "windows")]
     println!(">>> {}", translate_title);
     let result_vec = match contains_symbol(translate_string) {
-        true => google_translate_longstring(sl, tl, translate_string).unwrap(),
-        false => google_translate_shortword(sl, tl, translate_string).unwrap(),
+        true => match google_translate_longstring(sl, tl, translate_string) {
+            Ok(r) => r,
+            Err(e) => {
+                println!("translate failed: {}", e);
+                vec![]
+            },
+        },
+        false => match google_translate_shortword(sl, tl, translate_string) {
+            Ok(r) => r,
+            Err(e) => {
+                println!("translate failed: {}", e);
+                vec![]
+            },
+        }
     };
     // println!("{:?}", result_vec);
-    #[cfg(target_os = "linux")]
-    for v in result_vec {
-        println!("[{}] {}", "O".bright_blue().bold(), v[1]);
-        println!("[{}] {}", "T".green().bold(), v[0]);
-        if v.len() > 2 {
-            for i in 2..v.len() {
-                println!("[{}] {}", "A".cyan().bold(), v[i]);
+    if result_vec.len() > 0 {
+        #[cfg(target_os = "linux")]
+        for v in result_vec {
+            println!("[{}] {}", "O".bright_blue().bold(), v[1]);
+            println!("[{}] {}", "T".green().bold(), v[0]);
+            if v.len() > 2 {
+                for i in 2..v.len() {
+                    println!("[{}] {}", "A".cyan().bold(), v[i]);
+                }
             }
         }
-    }
-    #[cfg(target_os = "windows")]
-    for v in result_vec {
-        println!("[{}] {}", "O", v[1]);
-        println!("[{}] {}", "T", v[0]);
-        if v.len() > 2 {
-            for i in 2..v.len() {
-                println!("[{}] {}", "A", v[i]);
+        #[cfg(target_os = "windows")]
+        for v in result_vec {
+            println!("[{}] {}", "O", v[1]);
+            println!("[{}] {}", "T", v[0]);
+            if v.len() > 2 {
+                for i in 2..v.len() {
+                    println!("[{}] {}", "A", v[i]);
+                }
             }
         }
     }
