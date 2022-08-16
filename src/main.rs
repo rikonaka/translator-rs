@@ -81,22 +81,31 @@ async fn google_translate_shortword(
     tl: &str,
     translate_string: &str,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
-    let convert_string = |x: &str| -> String {
+    let fliter_char = |x: &str| -> String {
         x.replace(".", "")
             .replace(",", "")
             .replace("?", "")
             .replace("!", "")
             .replace(":", "")
             .replace("\"", "")
+            .replace("(", "")
+            .replace(")", "")
+            .replace("<", "")
+            .replace(">", "")
+            // UTF-8 char
+            .replace("“", "")
+            .replace("”", "")
             .replace("。", "")
             .replace("，", "")
             .replace("：", "")
-            .replace("“", "")
-            .replace("”", "")
+            .replace("（", "")
+            .replace("）", "")
+            .replace("《", "")
+            .replace("》", "")
     };
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dj=1&dt=t&dt=bd&dt=qc&dt=rm&dt=ex&dt=at&dt=ss&dt=rw&dt=ld&q={}&button&tk=233819.233819",
-        sl, tl, convert_string(translate_string)
+        sl, tl, fliter_char(translate_string)
     );
     let request_result = reqwest::get(translate_url)
         .await?
