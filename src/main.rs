@@ -41,10 +41,13 @@ async fn google_translate_longstring(
     tl: &str,
     translate_string: &str,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
+    let fliter_char = |x: &str| -> String {
+        x.replace("al.", "al")
+    };
     let max_loop = 100;
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dt=t&q={}",
-        sl, tl, translate_string
+        sl, tl, fliter_char(translate_string)
     );
     let request_result = reqwest::get(translate_url)
         .await?
