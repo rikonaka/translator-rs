@@ -41,13 +41,13 @@ async fn google_translate_longstring(
     tl: &str,
     translate_string: &str,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
-    let fliter_char = |x: &str| -> String {
-        x.replace("al.", "al")
-    };
+    let fliter_char = |x: &str| -> String { x.replace("al.", "al") };
     let max_loop = 100;
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dt=t&q={}",
-        sl, tl, fliter_char(translate_string)
+        sl,
+        tl,
+        fliter_char(translate_string)
     );
     let request_result = reqwest::get(translate_url)
         .await?
@@ -169,15 +169,15 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
             Err(e) => {
                 println!("translate failed: {}", e);
                 vec![]
-            },
+            }
         },
         false => match google_translate_shortword(sl, tl, translate_string) {
             Ok(r) => r,
             Err(e) => {
                 println!("translate failed: {}", e);
                 vec![]
-            },
-        }
+            }
+        },
     };
     // println!("{:?}", result_vec);
     if result_vec.len() > 0 {
@@ -219,16 +219,28 @@ fn get_select_text_linux() -> Option<String> {
     let output = Command::new("xsel")
         .output()
         .expect("Please install xsel first!");
-    let output = String::from_utf8_lossy(&output.stdout);
-    let output_string = output.to_string();
-    let output_replace = output_string
-        .replace("-\n", "")
-        .replace("%", "%25")
-        .replace("&", "%26")
-        .replace("\n", " ")
-        .trim()
-        .to_string();
-    Some(output_replace)
+    let output = String::from_utf8_lossy(&output.stdout).to_string();
+    let filter = |x: &str| -> String {
+        let x = match x.strip_prefix(".") {
+            Some(x) => x,
+            _ => x,
+        };
+        let x = match x.strip_prefix(",") {
+            Some(x) => x,
+            _ => x,
+        };
+        x.replace("-\n", "")
+            .replace("%", "%25")
+            .replace("&", "%26")
+            .replace("\n", " ")
+            .trim()
+            .to_string()
+    };
+    if output.len() > 0 {
+        let filterd_output = filter(&output);
+        return Some(filterd_output);
+    }
+    None
 }
 
 fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
@@ -256,7 +268,10 @@ fn main() {
         #[cfg(target_os = "linux")]
         loop {
             thread::sleep(Duration::from_secs(1));
-            let selected_text = get_select_text_linux().unwrap();
+            let selected_text = match get_select_text_linux() {
+                Some(s) => s,
+                _ => continue,
+            };
             if selected_text.trim().len() > 0 {
                 // println!("{}", &selected_text);
                 // let test_string = String::from("translate");
