@@ -32,6 +32,15 @@ struct Args {
         default_missing_value = "chinese"
     )]
     tl: String,
+    /// fast mode or slow mode
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "slow",
+        default_missing_value = "slow"
+    )]
+    mode: String,
 }
 
 #[tokio::main]
@@ -288,7 +297,10 @@ fn main() {
     let mut index: usize = 1;
     let args = Args::parse();
     let (sl, tl) = convert_args(&args.sl, &args.tl);
-    let sleep_time = Duration::from_secs(1);
+    let sleep_time = match args.mode.as_str() {
+        "fast" => Duration::from_secs_f32(0.3),
+        _ => Duration::from_secs(1),
+    };
     if cfg!(target_os = "linux") {
         #[cfg(target_os = "linux")]
         loop {
