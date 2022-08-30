@@ -1,14 +1,13 @@
 use clap::Parser;
-use reqwest;
-use serde_json;
-use std::{thread, time::Duration};
-
 #[cfg(target_os = "windows")]
 use cli_clipboard;
-#[cfg(target_os = "linux")]
 use colored::Colorize;
+use reqwest;
+use serde_json;
 #[cfg(target_os = "linux")]
 use std::process::Command;
+use std::time::SystemTime;
+use std::{thread, time::Duration};
 
 /// Simple program to translate text
 #[derive(Parser, Debug)]
@@ -65,8 +64,11 @@ async fn google_translate_longstring(
         match match_string_0.as_str() {
             "null" => break,
             _ => {
-                tmp_vec.push(match_string_0.replace("\"", ""));
-                tmp_vec.push(match_string_1.replace("\"", ""));
+                if tmp_vec.len() == 1 && tmp_vec[0] == "." {
+                } else {
+                    tmp_vec.push(match_string_0.replace("\"", ""));
+                    tmp_vec.push(match_string_1.replace("\"", ""));
+                }
             }
         }
         result_vec.push(tmp_vec);
@@ -158,11 +160,7 @@ fn contains_symbol(input_string: &str) -> bool {
 }
 
 fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
-    let translate_title = format!("Translate[{}]", index);
-    #[cfg(target_os = "linux")]
-    println!(">>> {}", translate_title.bold().red());
-    #[cfg(target_os = "windows")]
-    println!(">>> {}", translate_title);
+    let start = SystemTime::now();
     let result_vec = match contains_symbol(translate_string) {
         true => match google_translate_longstring(sl, tl, translate_string) {
             Ok(r) => r,
@@ -180,24 +178,30 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
         },
     };
     // println!("{:?}", result_vec);
+    let end = SystemTime::now();
+    let duration = end.duration_since(start).unwrap();
+    let translate_title = format!("Translate[{}] => {:.3}s", index, duration.as_secs_f64());
     if result_vec.len() > 0 {
-        #[cfg(target_os = "linux")]
-        for v in result_vec {
-            println!("[{}] {}", "O".bright_blue().bold(), v[1]);
-            println!("[{}] {}", "T".green().bold(), v[0]);
-            if v.len() > 2 {
-                for i in 2..v.len() {
-                    println!("[{}] {}", "A".cyan().bold(), v[i]);
+        if cfg!(target_os = "linux") {
+            println!(">>> {}", translate_title.bold().red());
+            for v in result_vec {
+                println!("[{}] {}", "O".bright_blue().bold(), v[1]);
+                println!("[{}] {}", "T".green().bold(), v[0]);
+                if v.len() > 2 {
+                    for i in 2..v.len() {
+                        println!("[{}] {}", "A".cyan().bold(), v[i]);
+                    }
                 }
             }
-        }
-        #[cfg(target_os = "windows")]
-        for v in result_vec {
-            println!("[{}] {}", "O", v[1]);
-            println!("[{}] {}", "T", v[0]);
-            if v.len() > 2 {
-                for i in 2..v.len() {
-                    println!("[{}] {}", "A", v[i]);
+        } else if cfg!(target_os = "windows") {
+            println!(">>> {}", translate_title);
+            for v in result_vec {
+                println!("[{}] {}", "O", v[1]);
+                println!("[{}] {}", "T", v[0]);
+                if v.len() > 2 {
+                    for i in 2..v.len() {
+                        println!("[{}] {}", "A", v[i]);
+                    }
                 }
             }
         }
@@ -206,11 +210,15 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
 
 #[cfg(target_os = "windows")]
 fn get_clipboard_text_windows() -> Option<String> {
-    let output_string = match cli_clipboard::get_contents() {
+    let output = match cli_clipboard::get_contents() {
         Ok(o) => o.trim().to_string(),
         Err(_) => String::from(""),
     };
-    Some(output_string)
+
+    if output.len() > 0 {
+        return Some(output);
+    }
+    None
 }
 
 #[cfg(target_os = "linux")]
@@ -220,6 +228,13 @@ fn get_select_text_linux() -> Option<String> {
         .output()
         .expect("Please install xsel first!");
     let output = String::from_utf8_lossy(&output.stdout).to_string();
+    if output.len() > 0 {
+        return Some(output);
+    }
+    None
+}
+
+fn get_text() -> Option<String> {
     let filter = |x: &str| -> String {
         let x = match x.strip_prefix(".") {
             Some(x) => x,
@@ -236,9 +251,18 @@ fn get_select_text_linux() -> Option<String> {
             .trim()
             .to_string()
     };
-    if output.len() > 0 {
-        let filterd_output = filter(&output);
-        return Some(filterd_output);
+    if cfg!(target_os = "linux") {
+        #[cfg(target_os = "linux")]
+        match get_select_text_linux() {
+            Some(t) => return Some(filter(&t)),
+            _ => return None,
+        }
+    } else if cfg!(target_os = "windows") {
+        #[cfg(target_os = "windows")]
+        match get_clipboard_text_windows() {
+            Some(t) => return Some(filter(&t)),
+            _ => return None,
+        }
     }
     None
 }
@@ -261,15 +285,16 @@ fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a 
 }
 
 fn main() {
-    if cfg!(target_os = "linux") || cfg!(target_os = "windows") {
-        let args = Args::parse();
-        let (sl, tl) = convert_args(&args.sl, &args.tl);
-        let mut index: usize = 1;
+    let mut index: usize = 1;
+    let args = Args::parse();
+    let (sl, tl) = convert_args(&args.sl, &args.tl);
+    let sleep_time = Duration::from_secs(1);
+    if cfg!(target_os = "linux") {
         #[cfg(target_os = "linux")]
         loop {
-            thread::sleep(Duration::from_secs(1));
-            let selected_text = match get_select_text_linux() {
-                Some(s) => s,
+            thread::sleep(sleep_time);
+            let selected_text = match get_text() {
+                Some(t) => t,
                 _ => continue,
             };
             if selected_text.trim().len() > 0 {
@@ -279,12 +304,16 @@ fn main() {
                 index += 1;
             }
         }
+    } else if cfg!(target_os = "windows") {
         #[cfg(target_os = "windows")]
         let mut last_clipboard_text = String::from("");
         #[cfg(target_os = "windows")]
         loop {
-            thread::sleep(Duration::from_secs(1));
-            let clipboard_text = get_clipboard_text_windows().unwrap();
+            thread::sleep(sleep_time);
+            let clipboard_text = match get_text() {
+                Some(t) => t,
+                _ => continue,
+            };
             if clipboard_text != last_clipboard_text {
                 last_clipboard_text = clipboard_text.clone();
                 if clipboard_text.trim().len() > 0 {
