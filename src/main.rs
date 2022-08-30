@@ -67,20 +67,23 @@ async fn google_translate_longstring(
     let mut i = 0;
     let mut result_vec: Vec<Vec<String>> = Vec::new();
     loop {
-        let mut tmp_vec: Vec<String> = Vec::new();
-        let match_string_0 = format!("{}", request_result[0][i][0]);
-        let match_string_1 = format!("{}", request_result[0][i][1]);
-        match match_string_0.as_str() {
+        let result_string_0 = format!("{}", request_result[0][i][0]);
+        let result_string_1 = format!("{}", request_result[0][i][1]);
+        match result_string_0.as_str() {
             "null" => break,
             _ => {
-                if tmp_vec.len() == 1 && tmp_vec[0] == "." {
+                let string_0 = result_string_0.replace("\"", "");
+                let string_1 = result_string_1.replace("\"", "");
+                if string_0.len() == 1 {
+                    // there is no possible for length of result is 1
                 } else {
-                    tmp_vec.push(match_string_0.replace("\"", ""));
-                    tmp_vec.push(match_string_1.replace("\"", ""));
+                    let mut tmp_vec: Vec<String> = Vec::new();
+                    tmp_vec.push(string_0);
+                    tmp_vec.push(string_1);
+                    result_vec.push(tmp_vec);
                 }
             }
         }
-        result_vec.push(tmp_vec);
         i += 1;
         if i > max_loop {
             break;
