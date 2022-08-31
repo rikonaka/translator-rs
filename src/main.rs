@@ -74,7 +74,7 @@ async fn google_translate_longstring(
             _ => {
                 let string_0 = result_string_0.replace("\"", "");
                 let string_1 = result_string_1.replace("\"", "");
-                if string_0.len() == 1 {
+                if string_0.len() == 1 && string_0 == "." {
                     // there is no possible for length of result is 1
                 } else {
                     let mut tmp_vec: Vec<String> = Vec::new();
