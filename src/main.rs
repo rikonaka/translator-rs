@@ -259,6 +259,7 @@ fn get_text() -> Option<String> {
         x.replace("-\n", "")
             .replace("%", "%25")
             .replace("&", "%26")
+            .replace("#", "%23")
             .replace("\n", " ")
             .trim()
             .to_string()
