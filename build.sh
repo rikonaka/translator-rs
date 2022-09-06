@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "DO NOT USE IT IN WINDOWS!!!"
+
 mv ./.cargo/config.toml.bak ./.cargo/config.toml
 
 echo "build target x86_64-unknown-linux-musl"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "DO NOT USE IT IN WINDOWS!!!"
+
 rm ./target/rust-translator-aarch64-unknown-linux-gnu.zip
 rm ./target/rust-translator-x86_64-pc-windows-gnu.zip
 rm ./target/rust-translator-x86_64-unknown-linux-gnu.zip
