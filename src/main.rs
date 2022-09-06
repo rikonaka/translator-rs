@@ -216,6 +216,7 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
                     }
                 }
             }
+            println!(""); // use the empty line to split two translate result
         }
     }
 }
