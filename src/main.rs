@@ -9,6 +9,8 @@ use std::process::Command;
 use std::time::SystemTime;
 use std::{thread, time::Duration};
 
+mod gui;
+
 /// Simple program to translate text
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
@@ -41,6 +43,15 @@ struct Args {
         default_missing_value = "slow"
     )]
     mode: String,
+    /// CLI mode or GUI mode
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "cli",
+        default_missing_value = "cli"
+    )]
+    ui: String,
 }
 
 #[tokio::main]
@@ -171,7 +182,7 @@ fn contains_symbol(input_string: &str) -> bool {
     input_string.contains(" ")
 }
 
-fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
+fn translate(ui_mode: i32, sl: &str, tl: &str, translate_string: &str, index: usize) {
     let start = SystemTime::now();
     let result_vec = match contains_symbol(translate_string) {
         true => match google_translate_longstring(sl, tl, translate_string) {
@@ -195,14 +206,32 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
     let translate_title = format!("Translate[{}] => {:.3}s", index, duration.as_secs_f64());
     if result_vec.len() > 0 {
         if cfg!(target_os = "linux") {
-            println!(">>> {}", translate_title.bold().red());
-            for v in result_vec {
-                println!("[{}] {}", "O".bright_blue().bold(), v[1]);
-                println!("[{}] {}", "T".green().bold(), v[0]);
-                if v.len() > 2 {
-                    for i in 2..v.len() {
-                        println!("[{}] {}", "A".cyan().bold(), v[i]);
+            match ui_mode {
+                0 => {
+                    // cli mode
+                    println!(">>> {}", translate_title.bold().red());
+                    for v in result_vec {
+                        println!("[{}] {}", "O".bright_blue().bold(), v[1]);
+                        println!("[{}] {}", "T".green().bold(), v[0]);
+                        if v.len() > 2 {
+                            for i in 2..v.len() {
+                                println!("[{}] {}", "A".cyan().bold(), v[i]);
+                            }
+                        }
                     }
+                }
+                _ => {
+                    // gui mode
+                    let mut result_str = String::from("");
+                    for v in result_vec {
+                        result_str.push_str(&v[1]);
+                        result_str.push_str("\n");
+                        result_str.push_str(&v[0]);
+                        result_str.push_str("\n");
+                    }
+                    thread::spawn(|| {
+                        gui::show()
+                    });
                 }
             }
         } else if cfg!(target_os = "windows") {
@@ -306,6 +335,10 @@ fn main() {
         "fast" => Duration::from_secs_f32(0.3),
         _ => Duration::from_secs(1),
     };
+    let show_mode = match args.ui.as_str() {
+        "cli" => 0,
+        _ => 1,
+    };
     if cfg!(target_os = "linux") {
         #[cfg(target_os = "linux")]
         loop {
@@ -317,7 +350,7 @@ fn main() {
             if selected_text.trim().len() > 0 {
                 // println!("{}", &selected_text);
                 // let test_string = String::from("translate");
-                translate(&sl, &tl, &selected_text, index);
+                translate(show_mode, &sl, &tl, &selected_text, index);
                 index += 1;
             }
         }
@@ -334,7 +367,7 @@ fn main() {
             if clipboard_text != last_clipboard_text {
                 last_clipboard_text = clipboard_text.clone();
                 if clipboard_text.trim().len() > 0 {
-                    translate(&sl, &tl, &clipboard_text, index);
+                    translate(show_mode, &sl, &tl, &clipboard_text, index);
                     index += 1;
                 }
             }
