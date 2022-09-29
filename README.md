@@ -70,13 +70,13 @@ rust-translator --proxy socks5://192.168.122.67:1080
 如有需要，请使用如下命令来指定`源语言`和`目标语言`：
 
 ```bash
-rust-translator --sourcelanguage enligh --targetlanguage french
+rust-translator --sourcelanguage engligh --targetlanguage french
 ```
 
 或者缩写
 
 ```bash
-rust-translator -s enligh -t french
+rust-translator -s engligh -t french
 ```
 
 如果觉得翻译速度慢可以使用 `fast` 模式（功耗可能会比 `slow` 模式高，默认是 `slow` 模式）：
