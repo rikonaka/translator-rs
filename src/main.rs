@@ -50,8 +50,8 @@ struct Args {
         short,
         long,
         value_parser,
-        default_value = "",
-        default_missing_value = ""
+        default_value = "none",
+        default_missing_value = "none"
     )]
     proxy: String,
 }
@@ -368,7 +368,7 @@ fn main() {
         _ => Duration::from_secs(1),
     };
     let proxy_str = match args.proxy.as_str() {
-        "" => None,
+        "none" => None,
         _ => Some(args.proxy),
     };
     if cfg!(target_os = "linux") {
