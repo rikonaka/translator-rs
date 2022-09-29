@@ -239,7 +239,7 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
                 Some(_) => println!(
                     ">>> {} {}",
                     translate_title.bold().red(),
-                    "<proxy mode activated>".bright_purple()
+                    "=> proxy".bright_purple()
                 ),
                 _ => println!(">>> {}", translate_title.bold().red()),
             }
@@ -254,7 +254,7 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
             }
         } else if cfg!(target_os = "windows") {
             match proxy_str {
-                Some(_) => println!(">>> {} {}", translate_title, "<proxy mode activated>"),
+                Some(_) => println!(">>> {} {}", translate_title, "=> proxy"),
                 _ => println!(">>> {}", translate_title),
             }
             for v in result_vec {
