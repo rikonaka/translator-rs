@@ -4,6 +4,7 @@ use cli_clipboard;
 use colored::Colorize;
 use reqwest;
 use serde_json;
+use std::error::Error;
 #[cfg(target_os = "linux")]
 use std::process::Command;
 use std::time::SystemTime;
@@ -61,7 +62,7 @@ async fn google_translate_longstring(
     tl: &str,
     translate_string: &str,
     proxy: Option<reqwest::Proxy>,
-) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
+) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
     let fliter_char = |x: &str| -> String { x.replace("al.", "al") };
     let max_loop = 100;
     let translate_url = format!(
@@ -121,7 +122,7 @@ async fn google_translate_shortword(
     tl: &str,
     translate_string: &str,
     proxy: Option<reqwest::Proxy>,
-) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
+) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
     let fliter_char = |x: &str| -> String {
         x.replace(".", "")
             .replace(",", "")
@@ -271,29 +272,34 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
 }
 
 #[cfg(target_os = "windows")]
-fn get_clipboard_text_windows() -> Option<String> {
+fn get_clipboard_text_windows() -> Result<String, Box<dyn Error>> {
     let output = match cli_clipboard::get_contents() {
         Ok(o) => o.trim().to_string(),
-        Err(_) => String::from(""),
+        Err(e) => {
+            println!("get clipboard contents failed: {}", e);
+            return Ok("".to_string());
+        }
     };
 
-    if output.len() > 0 {
-        return Some(output);
-    }
-    None
+    return Ok(output);
 }
 
 #[cfg(target_os = "linux")]
-fn get_select_text_linux() -> Option<String> {
+fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
     // return "" at least
-    let output = Command::new("xsel")
-        .output()
-        .expect("Please install xsel first!");
+    let output = match Command::new("xsel").output() {
+        Ok(o) => o,
+        Err(e) => {
+            println!("Please install xsel first...");
+            return Err(Box::new(e));
+        }
+    };
     let output = String::from_utf8_lossy(&output.stdout).to_string();
     if output.len() > 0 {
-        return Some(output);
+        return Ok(output);
+    } else {
+        return Ok("".to_string());
     }
-    None
 }
 
 fn get_text() -> Option<String> {
@@ -317,14 +323,20 @@ fn get_text() -> Option<String> {
     if cfg!(target_os = "linux") {
         #[cfg(target_os = "linux")]
         match get_select_text_linux() {
-            Some(t) => return Some(filter(&t)),
-            _ => return None,
+            Ok(t) => return Some(filter(&t)),
+            Err(e) => {
+                println!("get select text (linux) failed: {}", e);
+                return None;
+            }
         }
     } else if cfg!(target_os = "windows") {
         #[cfg(target_os = "windows")]
         match get_clipboard_text_windows() {
-            Some(t) => return Some(filter(&t)),
-            _ => return None,
+            Ok(t) => return Some(filter(&t)),
+            Err(e) => {
+                println!("get select text (windows) failed: {}", e);
+                return None;
+            }
         }
     }
     None

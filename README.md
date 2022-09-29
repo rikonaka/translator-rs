@@ -14,7 +14,7 @@
 sudo apt install xsel
 ```
 
-将 release 页面下的压缩包解压到本地，之后将二进制文件放到 `/usr/bin` 下（任何PATH目录都行），之后运行命令：
+将 release 页面下的压缩包解压到本地（建议下载 musl 版本的，gnu 版本的在某些 Linux 发行版上可能存在问题），之后将二进制文件放到 `/usr/bin` 下（任何PATH目录都行），之后运行命令：
 
 ```
 rust-translator
