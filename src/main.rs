@@ -9,9 +9,12 @@ use std::process::Command;
 use std::time::SystemTime;
 use std::{thread, time::Duration};
 
+const TIMEOUT: u64 = 9;
+
 /// Simple program to translate text
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
+
 struct Args {
     /// source language
     #[clap(
@@ -41,6 +44,15 @@ struct Args {
         default_missing_value = "slow"
     )]
     mode: String,
+    /// proxy set (socks5://192.168.1.1:9000)
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "",
+        default_missing_value = ""
+    )]
+    proxy: String,
 }
 
 #[tokio::main]
@@ -48,6 +60,7 @@ async fn google_translate_longstring(
     sl: &str,
     tl: &str,
     translate_string: &str,
+    proxy: Option<reqwest::Proxy>,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let fliter_char = |x: &str| -> String { x.replace("al.", "al") };
     let max_loop = 100;
@@ -57,7 +70,17 @@ async fn google_translate_longstring(
         tl,
         fliter_char(translate_string)
     );
-    let request_result = reqwest::get(translate_url)
+    let client = match proxy {
+        Some(p) => reqwest::Client::builder()
+            .proxy(p)
+            .build()
+            .expect("proxy client build failed"),
+        _ => reqwest::Client::new(),
+    };
+    let request_result = client
+        .get(translate_url)
+        .timeout(Duration::from_secs(TIMEOUT))
+        .send()
         .await?
         .json::<serde_json::Value>()
         .await?;
@@ -97,6 +120,7 @@ async fn google_translate_shortword(
     sl: &str,
     tl: &str,
     translate_string: &str,
+    proxy: Option<reqwest::Proxy>,
 ) -> Result<Vec<Vec<String>>, Box<dyn std::error::Error>> {
     let fliter_char = |x: &str| -> String {
         x.replace(".", "")
@@ -124,7 +148,17 @@ async fn google_translate_shortword(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dj=1&dt=t&dt=bd&dt=qc&dt=rm&dt=ex&dt=at&dt=ss&dt=rw&dt=ld&q={}&button&tk=233819.233819",
         sl, tl, fliter_char(translate_string)
     );
-    let request_result = reqwest::get(translate_url)
+    let client = match proxy {
+        Some(p) => reqwest::Client::builder()
+            .proxy(p)
+            .build()
+            .expect("proxy client build failed"),
+        _ => reqwest::Client::new(),
+    };
+    let request_result = client
+        .get(translate_url)
+        .timeout(Duration::from_secs(TIMEOUT))
+        .send()
         .await?
         .json::<serde_json::Value>()
         .await?;
@@ -171,17 +205,22 @@ fn contains_symbol(input_string: &str) -> bool {
     input_string.contains(" ")
 }
 
-fn translate(sl: &str, tl: &str, translate_string: &str, index: usize) {
+fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str: &Option<String>) {
     let start = SystemTime::now();
+    // let proxy = reqwest::Proxy::http("socks5://192.168.1.1:9000").expect("set proxy failed");
+    let proxy = match proxy_str {
+        Some(s) => Some(reqwest::Proxy::https(s).expect("set proxy failed")),
+        _ => None,
+    };
     let result_vec = match contains_symbol(translate_string) {
-        true => match google_translate_longstring(sl, tl, translate_string) {
+        true => match google_translate_longstring(sl, tl, translate_string, proxy) {
             Ok(r) => r,
             Err(e) => {
                 println!("translate failed: {}", e);
                 vec![]
             }
         },
-        false => match google_translate_shortword(sl, tl, translate_string) {
+        false => match google_translate_shortword(sl, tl, translate_string, proxy) {
             Ok(r) => r,
             Err(e) => {
                 println!("translate failed: {}", e);
@@ -307,6 +346,10 @@ fn main() {
         "fast" => Duration::from_secs_f32(0.3),
         _ => Duration::from_secs(1),
     };
+    let proxy_str = match args.proxy.as_str() {
+        "" => None,
+        _ => Some(args.proxy),
+    };
     if cfg!(target_os = "linux") {
         #[cfg(target_os = "linux")]
         loop {
@@ -318,7 +361,7 @@ fn main() {
             if selected_text.trim().len() > 0 {
                 // println!("{}", &selected_text);
                 // let test_string = String::from("translate");
-                translate(&sl, &tl, &selected_text, index);
+                translate(&sl, &tl, &selected_text, index, &proxy_str);
                 index += 1;
             }
         }
@@ -335,7 +378,7 @@ fn main() {
             if clipboard_text != last_clipboard_text {
                 last_clipboard_text = clipboard_text.clone();
                 if clipboard_text.trim().len() > 0 {
-                    translate(&sl, &tl, &clipboard_text, index);
+                    translate(&sl, &tl, &clipboard_text, index, &proxy_str);
                     index += 1;
                 }
             }
