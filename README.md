@@ -28,7 +28,7 @@ rust-translator
 
 ## 使用
 
-直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome&Wayland 桌面环境上测试过，没有在 KDE 或者其他桌面测试过）。
+直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome&Wayland 桌面环境上测试过，还有 Kubuntu 的 Plasma 桌面，其他桌面没有测试过）。
 
 ## 如要自行编译
 
