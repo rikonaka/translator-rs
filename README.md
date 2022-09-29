@@ -28,7 +28,7 @@ rust-translator
 
 ## 使用
 
-直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome 桌面环境上测试过，没有在 KDE 或者其他桌面测试过）
+直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome&Wayland 桌面环境上测试过，没有在 KDE 或者其他桌面测试过）。
 
 ## 如要自行编译
 
@@ -48,7 +48,19 @@ sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-d
 
 # 注
 
+**根据最新的防火墙规则（GFW）已经将 Google 翻译 API 列入黑名单，所以新增 proxy 选项。**
+
+所以如果出现访问超时的情况，请考虑为翻译软件设置代理，目前支持代理：
+
+* https 代理
+* socks5 代理
+
+```bash
+rust-translator --proxy socks5://192.168.122.67:1080
+```
+
 目前支持的翻译语种包含了
+
 * english
 * chinese
 * japanese
@@ -58,12 +70,18 @@ sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-d
 如有需要，请使用如下命令来指定`源语言`和`目标语言`：
 
 ```bash
+rust-translator --sourcelanguage enligh --targetlanguage french
+```
+
+或者缩写
+
+```bash
 rust-translator -s enligh -t french
 ```
 
 如果觉得翻译速度慢可以使用 `fast` 模式（功耗可能会比 `slow` 模式高，默认是 `slow` 模式）：
 
-```
+```bash
 rust-translator -m fast
 ```
 

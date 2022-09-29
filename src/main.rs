@@ -24,7 +24,7 @@ struct Args {
         default_value = "english",
         default_missing_value = "english"
     )]
-    sl: String,
+    sourcelanguage: String,
 
     /// target translation language
     #[clap(
@@ -34,7 +34,7 @@ struct Args {
         default_value = "chinese",
         default_missing_value = "chinese"
     )]
-    tl: String,
+    targetlanguage: String,
     /// fast mode or slow mode
     #[clap(
         short,
@@ -234,8 +234,14 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
     let translate_title = format!("Translate[{}] => {:.3}s", index, duration.as_secs_f64());
     if result_vec.len() > 0 {
         if cfg!(target_os = "linux") {
-            // cli mode
-            println!(">>> {}", translate_title.bold().red());
+            match proxy_str {
+                Some(_) => println!(
+                    ">>> {} {}",
+                    translate_title.bold().red(),
+                    "<proxy mode activated>".bright_purple()
+                ),
+                _ => println!(">>> {}", translate_title.bold().red()),
+            }
             for v in result_vec {
                 println!("[{}] {}", "O".bright_blue().bold(), v[1]);
                 println!("[{}] {}", "T".green().bold(), v[0]);
@@ -246,7 +252,10 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
                 }
             }
         } else if cfg!(target_os = "windows") {
-            println!(">>> {}", translate_title);
+            match proxy_str {
+                Some(_) => println!(">>> {} {}", translate_title, "<proxy mode activated>"),
+                _ => println!(">>> {}", translate_title),
+            }
             for v in result_vec {
                 println!("[{}] {}", "O", v[1]);
                 println!("[{}] {}", "T", v[0]);
@@ -341,7 +350,7 @@ fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a 
 fn main() {
     let mut index: usize = 1;
     let args = Args::parse();
-    let (sl, tl) = convert_args(&args.sl, &args.tl);
+    let (sl, tl) = convert_args(&args.sourcelanguage, &args.targetlanguage);
     let sleep_time = match args.mode.as_str() {
         "fast" => Duration::from_secs_f32(0.3),
         _ => Duration::from_secs(1),
@@ -351,6 +360,8 @@ fn main() {
         _ => Some(args.proxy),
     };
     if cfg!(target_os = "linux") {
+        #[cfg(target_os = "linux")]
+        println!("{}", "Working...".bold().yellow());
         #[cfg(target_os = "linux")]
         loop {
             thread::sleep(sleep_time);
@@ -366,6 +377,8 @@ fn main() {
             }
         }
     } else if cfg!(target_os = "windows") {
+        #[cfg(target_os = "windows")]
+        println!("Working...");
         #[cfg(target_os = "windows")]
         let mut last_clipboard_text = String::from("");
         #[cfg(target_os = "windows")]
