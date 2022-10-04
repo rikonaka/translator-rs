@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use clap::Parser;
 #[cfg(target_os = "windows")]
 use cli_clipboard;
@@ -232,7 +233,14 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
     // println!("{:?}", result_vec);
     let end = SystemTime::now();
     let duration = end.duration_since(start).unwrap();
-    let translate_title = format!("Translate[{}] => {:.3}s", index, duration.as_secs_f64());
+    let dt = Local::now();
+    let dt_str = dt.format("%H:%M:%S").to_string();
+    let translate_title = format!(
+        "Translate[{}]({}) => {:.3}s",
+        index,
+        dt_str,
+        duration.as_secs_f32()
+    );
     if result_vec.len() > 0 {
         if cfg!(target_os = "linux") {
             match proxy_str {
