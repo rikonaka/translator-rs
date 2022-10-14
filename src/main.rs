@@ -283,8 +283,8 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
 fn get_clipboard_text_windows() -> Result<String, Box<dyn Error>> {
     let output = match cli_clipboard::get_contents() {
         Ok(o) => o.trim().to_string(),
-        Err(e) => {
-            println!("get clipboard contents failed: {}", e);
+        Err(_) => {
+            // println!("get clipboard contents failed: {}", e);
             return Ok("".to_string());
         }
     };
