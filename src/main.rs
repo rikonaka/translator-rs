@@ -407,20 +407,21 @@ fn main() {
                 Some(t) => t,
                 _ => continue,
             };
-            if text_type == 0 {
-                if selected_text.len() > 0 {
+            if selected_text.len() > 0 {
+                if text_type == 0 {
                     // println!("{}", &selected_text);
                     // let test_string = String::from("translate");
-                    translate(&sl, &tl, &selected_text, index, &proxy_str);
-                    index += 1;
                     last_clipboard_text = String::from("");
+                } else {
+                    if selected_text != last_clipboard_text {
+                        last_clipboard_text = selected_text.clone();
+                    }
+                    else {
+                        continue;
+                    }
                 }
-            } else {
-                if selected_text != last_clipboard_text {
-                    last_clipboard_text = selected_text.clone();
-                    translate(&sl, &tl, &selected_text, index, &proxy_str);
-                    index += 1;
-                }
+                translate(&sl, &tl, &selected_text, index, &proxy_str);
+                index += 1;
             }
         }
     } else if cfg!(target_os = "windows") {
