@@ -1,6 +1,5 @@
 use chrono::prelude::*;
 use clap::Parser;
-#[cfg(target_os = "windows")]
 use cli_clipboard;
 use colored::Colorize;
 use reqwest;
@@ -279,8 +278,7 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
     }
 }
 
-#[cfg(target_os = "windows")]
-fn get_clipboard_text_windows() -> Result<String, Box<dyn Error>> {
+fn get_clipboard_text() -> Result<String, Box<dyn Error>> {
     let output = match cli_clipboard::get_contents() {
         Ok(o) => o.trim().to_string(),
         Err(_) => {
@@ -303,14 +301,19 @@ fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
         }
     };
     let output = String::from_utf8_lossy(&output.stdout).to_string();
-    if output.len() > 0 {
-        return Ok(output);
+    if output.trim().len() > 0 {
+        return Ok(output.trim().to_string());
     } else {
         return Ok("".to_string());
     }
 }
 
-fn get_text() -> Option<String> {
+fn get_text() -> (u8, Option<String>) {
+    /*
+    type, result
+    0 => select text
+    1 => copy text
+    */
     let filter = |x: &str| -> String {
         let x = match x.strip_prefix(".") {
             Some(x) => x,
@@ -331,23 +334,36 @@ fn get_text() -> Option<String> {
     if cfg!(target_os = "linux") {
         #[cfg(target_os = "linux")]
         match get_select_text_linux() {
-            Ok(t) => return Some(filter(&t)),
+            Ok(t) => {
+                if t.trim().len() != 0 {
+                    return (0, Some(filter(&t)));
+                } else {
+                    let t = match get_clipboard_text() {
+                        Ok(t) => t,
+                        Err(e) => {
+                            println!("get select text (linux) failed: {}", e);
+                            return (1, None);
+                        }
+                    };
+                    return (1, Some(filter(&t)));
+                }
+            }
             Err(e) => {
                 println!("get select text (linux) failed: {}", e);
-                return None;
+                return (0, None);
             }
         }
     } else if cfg!(target_os = "windows") {
         #[cfg(target_os = "windows")]
-        match get_clipboard_text_windows() {
-            Ok(t) => return Some(filter(&t)),
+        match get_clipboard_text() {
+            Ok(t) => return (1, Some(filter(&t))),
             Err(e) => {
                 println!("get select text (windows) failed: {}", e);
-                return None;
+                return (0, None);
             }
         }
     }
-    None
+    (0, None)
 }
 
 fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
@@ -383,17 +399,28 @@ fn main() {
         #[cfg(target_os = "linux")]
         println!("{}", "Working...".bold().yellow());
         #[cfg(target_os = "linux")]
+        let mut last_clipboard_text = String::from("");
         loop {
             thread::sleep(sleep_time);
-            let selected_text = match get_text() {
+            let (text_type, selected_text) = get_text();
+            let selected_text = match selected_text {
                 Some(t) => t,
                 _ => continue,
             };
-            if selected_text.trim().len() > 0 {
-                // println!("{}", &selected_text);
-                // let test_string = String::from("translate");
-                translate(&sl, &tl, &selected_text, index, &proxy_str);
-                index += 1;
+            if text_type == 0 {
+                if selected_text.len() > 0 {
+                    // println!("{}", &selected_text);
+                    // let test_string = String::from("translate");
+                    translate(&sl, &tl, &selected_text, index, &proxy_str);
+                    index += 1;
+                    last_clipboard_text = String::from("");
+                }
+            } else {
+                if selected_text != last_clipboard_text {
+                    last_clipboard_text = selected_text.clone();
+                    translate(&sl, &tl, &selected_text, index, &proxy_str);
+                    index += 1;
+                }
             }
         }
     } else if cfg!(target_os = "windows") {
@@ -410,7 +437,7 @@ fn main() {
             };
             if clipboard_text != last_clipboard_text {
                 last_clipboard_text = clipboard_text.clone();
-                if clipboard_text.trim().len() > 0 {
+                if clipboard_text.len() > 0 {
                     translate(&sl, &tl, &clipboard_text, index, &proxy_str);
                     index += 1;
                 }
