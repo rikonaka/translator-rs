@@ -5,7 +5,6 @@ use colored::Colorize;
 use reqwest;
 use serde_json;
 use std::error::Error;
-#[cfg(target_os = "linux")]
 use std::process::Command;
 use std::time::SystemTime;
 use std::{thread, time::Duration};
@@ -397,7 +396,6 @@ fn get_clipboard_text() -> Result<String, Box<dyn Error>> {
     return Ok(output);
 }
 
-#[cfg(target_os = "linux")]
 fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
     // return "" at least
     let output = match Command::new("xsel").output() {
@@ -512,9 +510,7 @@ fn main() {
     };
 
     if cfg!(target_os = "linux") {
-        #[cfg(target_os = "linux")]
         println!("{}", "Working...".bold().yellow());
-        #[cfg(target_os = "linux")]
         let mut sub_clear_times = clear_times;
         loop {
             thread::sleep(sleep_time);
