@@ -38,10 +38,6 @@ rust-translator
 sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
-## 测试
-
-执行命令 `cargo run` 之前先得将 `.cargo/config.toml` 这个配置文件改成一个不能被 cargo 识别的配置名字（如 `config.toml.bak`）。
-
 # Windows 使用
 
 下载对应的 Windows 版本之后直接双击运行，和 Linux 版本不同的是，Windows 版本鼠标选出要翻译的文字之后，还要再按一个 `ctl-c`（复制）。
@@ -64,7 +60,6 @@ rust-translator --proxy socks5://192.168.122.67:1080
 ```bash
 rust-translator -p socks5://192.168.122.67:1080
 ```
-
 
 目前支持的翻译语种包含了：
 
