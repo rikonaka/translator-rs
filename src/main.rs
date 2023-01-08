@@ -22,18 +22,17 @@ struct Args {
         short,
         long,
         value_parser,
-        default_value = "english",
-        default_missing_value = "english"
+        default_value = "English",
+        default_missing_value = "English"
     )]
     sourcelanguage: String,
-
     /// target translation language
     #[clap(
         short,
         long,
         value_parser,
-        default_value = "chinese",
-        default_missing_value = "chinese"
+        default_value = "Chinese",
+        default_missing_value = "Chinese"
     )]
     targetlanguage: String,
     /// fast mode or slow mode
@@ -54,12 +53,39 @@ struct Args {
         default_missing_value = "none"
     )]
     proxy: String,
+    /// translate new text and clear the screen
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "0",
+        default_missing_value = "1"
+    )]
+    clear: String,
+    /// show original text or not
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "false",
+        default_missing_value = "true"
+    )]
+    no_original: String,
+    /// auto break the sentence or not
+    #[clap(
+        short,
+        long,
+        value_parser,
+        default_value = "false",
+        default_missing_value = "true"
+    )]
+    disable_auto_break: String,
 }
 
 #[tokio::main]
 async fn google_translate_longstring(
-    sl: &str,
-    tl: &str,
+    sl: &str, // source language
+    tl: &str, // target language
     translate_string: &str,
     proxy: Option<reqwest::Proxy>,
 ) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
@@ -206,8 +232,14 @@ fn contains_symbol(input_string: &str) -> bool {
     input_string.contains(" ")
 }
 
-fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str: &Option<String>) {
-    let start = SystemTime::now();
+pub fn translate<'a>(
+    sl: &'a str,
+    tl: &'a str,
+    translate_string: &'a str,
+    index: usize,
+    proxy_str: &'a Option<String>,
+) -> TranslateResult<'a> {
+    let start_time = SystemTime::now();
     // let proxy = reqwest::Proxy::http("socks5://192.168.1.1:9000").expect("set proxy failed");
     let proxy = match proxy_str {
         Some(s) => Some(reqwest::Proxy::https(s).expect("set proxy failed")),
@@ -230,18 +262,45 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
         },
     };
     // println!("{:?}", result_vec);
-    let end = SystemTime::now();
-    let duration = end.duration_since(start).unwrap();
-    let dt = Local::now();
-    let dt_str = dt.format("%H:%M:%S").to_string();
-    let translate_title = format!(
-        "Translate[{}]({}) => {:.3}s",
+    let end_time = SystemTime::now();
+    TranslateResult {
+        result_vec,
+        proxy_str,
+        start_time,
+        end_time,
         index,
-        dt_str,
-        duration.as_secs_f32()
-    );
-    if result_vec.len() > 0 {
-        if cfg!(target_os = "linux") {
+    }
+}
+
+pub struct TranslateResult<'a> {
+    result_vec: Vec<Vec<String>>,
+    proxy_str: &'a Option<String>,
+    start_time: SystemTime,
+    end_time: SystemTime,
+    index: usize,
+}
+
+impl TranslateResult<'_> {
+    fn show(&self, no_original: bool, disable_auto_break: bool) {
+        let start_time = self.start_time;
+        let end_time = self.end_time;
+        let index = self.index;
+        let result_vec = &self.result_vec;
+        let proxy_str = self.proxy_str;
+
+        let duration = end_time.duration_since(start_time).unwrap();
+        let dt = Local::now();
+        let dt_str = dt.format("%H:%M:%S").to_string();
+        let translate_title = format!(
+            "Translate[{}]({}) => {:.3}s",
+            index,
+            dt_str,
+            duration.as_secs_f32()
+        );
+
+        if result_vec.len() > 0 {
+            // linux part
+            #[cfg(target_os = "linux")]
             match proxy_str {
                 Some(_) => println!(
                     ">>> {} {}",
@@ -250,30 +309,73 @@ fn translate(sl: &str, tl: &str, translate_string: &str, index: usize, proxy_str
                 ),
                 _ => println!(">>> {}", translate_title.bold().red()),
             }
-            for v in result_vec {
-                println!("[{}] {}", "O".bright_blue().bold(), v[1]);
-                println!("[{}] {}", "T".green().bold(), v[0]);
-                if v.len() > 2 {
-                    for i in 2..v.len() {
-                        println!("[{}] {}", "A".cyan().bold(), v[i]);
-                    }
-                }
-            }
-        } else if cfg!(target_os = "windows") {
+            // windows part
+            #[cfg(target_os = "windows")]
             match proxy_str {
                 Some(_) => println!(">>> {} {}", translate_title, "=> proxy"),
                 _ => println!(">>> {}", translate_title),
             }
-            for v in result_vec {
-                println!("[{}] {}", "O", v[1]);
-                println!("[{}] {}", "T", v[0]);
-                if v.len() > 2 {
-                    for i in 2..v.len() {
-                        println!("[{}] {}", "A", v[i]);
+            match disable_auto_break {
+                true => {
+                    let mut original_text = String::new();
+                    let mut translate_text = String::new();
+                    let mut alter_translate_text = String::new();
+                    for v in result_vec {
+                        original_text.push_str(&v[1]);
+                        translate_text.push_str(&v[0]);
+                        if v.len() > 2 {
+                            for i in 2..v.len() {
+                                alter_translate_text.push_str(&v[i]);
+                            }
+                        }
                     }
+                    match no_original {
+                        true => (),
+                        _ => {
+                            #[cfg(target_os = "linux")]
+                            println!("[{}] {}", "O".bright_blue().bold(), &original_text);
+                            #[cfg(target_os = "windows")]
+                            println!("[{}] {}", "O", &original_text);
+                        }
+                    }
+                    #[cfg(target_os = "linux")]
+                    println!("[{}] {}", "T".green().bold(), &translate_text);
+                    #[cfg(target_os = "windows")]
+                    println!("[{}] {}", "T", &translate_text);
+                    if alter_translate_text.len() > 0 {
+                        #[cfg(target_os = "linux")]
+                        println!("[{}] {}", "A".cyan().bold(), &alter_translate_text);
+                        #[cfg(target_os = "windows")]
+                        println!("[{}] {}", "A", &alter_translate_text);
+                    }
+                    #[cfg(target_os = "windows")]
+                    println!(""); // use the empty line to split two translate result in windows
+                }
+                _ => {
+                    for v in result_vec {
+                        match no_original {
+                            true => (),
+                            _ => {
+                                #[cfg(target_os = "linux")]
+                                println!("[{}] {}", "O".bright_blue().bold(), v[1]);
+                                #[cfg(target_os = "windows")]
+                                println!("[{}] {}", "O", v[1]);
+                            }
+                        }
+                        println!("[{}] {}", "T".green().bold(), v[0]);
+                        if v.len() > 2 {
+                            for i in 2..v.len() {
+                                #[cfg(target_os = "linux")]
+                                println!("[{}] {}", "A".cyan().bold(), v[i]);
+                                #[cfg(target_os = "windows")]
+                                println!("[{}] {}", "A", v[i]);
+                            }
+                        }
+                    }
+                    #[cfg(target_os = "windows")]
+                    println!(""); // use the empty line to split two translate result in windows
                 }
             }
-            println!(""); // use the empty line to split two translate result
         }
     }
 }
@@ -286,7 +388,12 @@ fn get_clipboard_text() -> Result<String, Box<dyn Error>> {
             return Ok("".to_string());
         }
     };
-
+    if output.len() > 0 {
+        // set the clipboard to null
+        match cli_clipboard::set_contents("".to_owned()) {
+            _ => (),
+        }
+    }
     return Ok(output);
 }
 
@@ -308,7 +415,7 @@ fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
     }
 }
 
-fn get_text() -> (u8, Option<String>) {
+pub fn get_text() -> String {
     /*
     type, result
     0 => select text
@@ -332,48 +439,46 @@ fn get_text() -> (u8, Option<String>) {
             .to_string()
     };
     if cfg!(target_os = "linux") {
-        #[cfg(target_os = "linux")]
         match get_select_text_linux() {
             Ok(t) => {
                 if t.trim().len() != 0 {
-                    return (0, Some(filter(&t)));
+                    return filter(&t);
                 } else {
                     let t = match get_clipboard_text() {
                         Ok(t) => t,
                         Err(e) => {
                             println!("get select text (linux) failed: {}", e);
-                            return (1, None);
+                            return "".to_string();
                         }
                     };
-                    return (1, Some(filter(&t)));
+                    return filter(&t);
                 }
             }
             Err(e) => {
                 println!("get select text (linux) failed: {}", e);
-                return (0, None);
+                return "".to_string();
             }
         }
     } else if cfg!(target_os = "windows") {
-        #[cfg(target_os = "windows")]
         match get_clipboard_text() {
-            Ok(t) => return (1, Some(filter(&t))),
+            Ok(t) => return filter(&t),
             Err(e) => {
                 println!("get select text (windows) failed: {}", e);
-                return (0, None);
+                return "".to_string();
             }
         }
     }
-    (0, None)
+    "".to_string()
 }
 
-fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
+pub fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
     let convert_language = |x: &str| -> &str {
         let result = match x {
-            "english" => "en",
-            "chinese" => "zh-CN",
-            "japanese" => "ja",
-            "french" => "fr",
-            "german" => "de",
+            "English" => "en",
+            "Chinese" => "zh-CN",
+            "Japanese" => "ja",
+            "French" => "fr",
+            "German" => "de",
             _ => "en",
         };
         result
@@ -395,56 +500,60 @@ fn main() {
         "none" => None,
         _ => Some(args.proxy),
     };
+    let clear_times: u8 = args.clear.parse().unwrap();
+    // println!("clear: {}", clear_times);
+    let no_original = match args.no_original.as_str() {
+        "true" => true,
+        _ => false,
+    };
+    let not_auto_break = match args.disable_auto_break.as_str() {
+        "true" => true,
+        _ => false,
+    };
+
     if cfg!(target_os = "linux") {
         #[cfg(target_os = "linux")]
         println!("{}", "Working...".bold().yellow());
         #[cfg(target_os = "linux")]
-        let mut last_clipboard_text = String::from("");
+        let mut sub_clear_times = clear_times;
         loop {
             thread::sleep(sleep_time);
-            let (text_type, selected_text) = get_text();
-            let selected_text = match selected_text {
-                Some(t) => t,
-                _ => continue,
-            };
+            let selected_text = get_text();
             if selected_text.len() > 0 {
-                if text_type == 0 {
-                    // println!("{}", &selected_text);
-                    // let test_string = String::from("translate");
-                    last_clipboard_text = String::from("");
-                } else {
-                    if selected_text != last_clipboard_text {
-                        last_clipboard_text = selected_text.clone();
-                    }
-                    else {
-                        continue;
-                    }
+                if sub_clear_times <= 0 {
+                    // send a control character to clear the terminal screen
+                    // print!("{}[2J", 27 as char);
+                    // set position the cursor at row 1, column 1
+                    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+                    sub_clear_times = clear_times;
                 }
-                translate(&sl, &tl, &selected_text, index, &proxy_str);
+                let translate_result = translate(&sl, &tl, &selected_text, index, &proxy_str);
+                translate_result.show(no_original, not_auto_break);
                 index += 1;
+                sub_clear_times -= 1;
             }
         }
     } else if cfg!(target_os = "windows") {
-        #[cfg(target_os = "windows")]
         println!("Working...");
-        #[cfg(target_os = "windows")]
-        let mut last_clipboard_text = String::from("");
-        #[cfg(target_os = "windows")]
+        let mut sub_clear = clear_times;
         loop {
             thread::sleep(sleep_time);
-            let clipboard_text = match get_text() {
-                Some(t) => t,
-                _ => continue,
-            };
-            if clipboard_text != last_clipboard_text {
-                last_clipboard_text = clipboard_text.clone();
-                if clipboard_text.len() > 0 {
-                    translate(&sl, &tl, &clipboard_text, index, &proxy_str);
-                    index += 1;
-                }
+            let clipboard_text = get_text();
+            if sub_clear <= 0 {
+                // send a control character to clear the terminal screen
+                // print!("{}[2J", 27 as char);
+                // set position the cursor at row 1, column 1
+                // print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+                sub_clear = clear_times;
+            }
+            if clipboard_text.len() > 0 {
+                let translate_result = translate(&sl, &tl, &clipboard_text, index, &proxy_str);
+                translate_result.show(no_original, not_auto_break);
+                index += 1;
+                sub_clear -= 1;
             }
         }
     } else {
-        panic!("Not support running at the other system!");
+        panic!("not support running at the other system!");
     }
 }

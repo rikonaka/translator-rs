@@ -1,6 +1,6 @@
 [package]
 name = "rust-translator"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -16,3 +16,7 @@ colored = "2.0"
 chrono = "0.4.22"
 cli-clipboard = "0.2"
 clap = { version = "3.2", features = ["derive"] }
+# tui = "0.19"
+# crossterm = "0.25"
+# unicode-width = "0.1"
+# cursive = "0.20"
