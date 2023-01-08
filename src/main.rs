@@ -500,7 +500,7 @@ fn main() {
         "none" => None,
         _ => Some(args.proxy),
     };
-    let clear_times: u8 = args.clear.parse().unwrap();
+    let clear_times: i32 = args.clear.parse().unwrap();
     // println!("clear: {}", clear_times);
     let no_original = match args.no_original.as_str() {
         "true" => true,

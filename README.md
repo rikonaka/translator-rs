@@ -14,7 +14,7 @@
 sudo apt install xsel
 ```
 
-将 release 页面下的压缩包解压到本地（建议下载 musl 版本的，gnu 版本的在某些 Linux 发行版上可能存在问题），之后将二进制文件放到 `/usr/bin` 下（任何PATH目录都行），之后运行命令：
+将 release 页面下的压缩包解压到本地，之后将二进制文件放到 `/usr/bin` 下（任何PATH目录都行），之后运行命令：
 
 ```
 rust-translator
@@ -28,7 +28,7 @@ rust-translator
 
 ## 使用
 
-直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome&Wayland 桌面环境上测试过，还有 Kubuntu 的 Plasma 桌面，其他桌面没有测试过）。
+直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome&Wayland 桌面环境上测试过，还有 Kubuntu22.04 的 Plasma 桌面，其他桌面没有测试过）。
 
 ## 如要自行编译
 
@@ -161,8 +161,12 @@ rust-translator -d
 不想在这方面浪费时间，能满足使用就行😘。
 （科研压力大...三天以上的工程就不考虑了，如果有人愿意提供一份 ui，可以一起合作将核心功能和 ui 融合起来）。
 
+# release
+
 release 页面有多个版本下载：
-* Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的（Linux 默认的 glibc，在某些旧发行版上会出现报错所以谨慎使用）
+
+* ~~Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的~~（Linux 默认的 glibc 在某些旧发行版上会出现报错）
 * Linux 另一个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间小可移植性好）
-* Windows 版本是使用 `x86_64-pc-windows-gnu` 静态编译的（和 Windows 的默认编译器 MSVC 对比来说可能会有一些 bug 但是我没发现）
-* ARM 本是使用 `aarch64-unknown-linux-gnu` 静态编译的
+* ~~Windows 版本是使用 `x86_64-pc-windows-gnu` 静态编译的~~（和 Windows 的默认编译器 MSVC 对比来说可能会有一些 bug ）
+* Windows 另一个版本是用 `x86_64-pc-windows-msvc` 静态编译的
+* ~~ARM 本是使用 `aarch64-unknown-linux-gnu` 静态编译的~~（没什么人用）
