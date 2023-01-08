@@ -163,6 +163,6 @@ rust-translator -d
 
 release 页面有多个版本下载：
 * Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的（Linux 默认的 glibc，在某些旧发行版上会出现报错所以谨慎使用）
-7* Linux 另一个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间小可移植性好）
+* Linux 另一个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间小可移植性好）
 * Windows 版本是使用 `x86_64-pc-windows-gnu` 静态编译的（和 Windows 的默认编译器 MSVC 对比来说可能会有一些 bug 但是我没发现）
 * ARM 本是使用 `aarch64-unknown-linux-gnu` 静态编译的
