@@ -14,7 +14,6 @@ const TIMEOUT: u64 = 9;
 /// Simple program to translate text
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
-
 struct Args {
     /// source language
     #[clap(
