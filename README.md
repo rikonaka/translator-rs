@@ -2,7 +2,7 @@
 
 一个用 rust 写的 PDF 论文简单实时翻译，翻译 API 为 Google 提供（主要支持 Linux 用户，Windows 用户也可以用但是貌似有比这还好的软件？）。
 
-支持单个单词查看详细相似翻译
+支持单个单词查看详细相似翻译。
 
 ![example](./vids/example.gif)
 
@@ -40,9 +40,11 @@ sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-d
 
 # Windows 使用
 
-下载对应的 Windows 版本之后直接双击运行，和 Linux 版本不同的是，Windows 版本鼠标选出要翻译的文字之后，还要再按一个 `ctl-c`（复制）。
+下载对应的 Windows 版本之后直接双击运行，和 Linux 版本不同的是，Windows 版本鼠标选出要翻译的文字之后，还要再按一个 `ctrl-c`（复制）。
 
-# 注
+# 使用说明
+
+## 代理选项
 
 **根据最新的防火墙规则（GFW）已经将 Google 翻译 API 列入黑名单，所以新增 proxy 选项。**
 
@@ -60,6 +62,8 @@ rust-translator --proxy socks5://192.168.122.67:1080
 ```bash
 rust-translator -p socks5://192.168.122.67:1080
 ```
+
+## 切换翻译语种
 
 目前支持的翻译语种包含了：
 
@@ -81,6 +85,8 @@ rust-translator --sourcelanguage Engligh --targetlanguage French
 rust-translator -s Engligh -t French
 ```
 
+## 加快翻译速度
+
 如果觉得翻译速度慢可以使用 `fast` 模式（功耗可能会比 `slow` 模式高，默认是 `slow` 模式）：
 
 ```bash
@@ -97,9 +103,11 @@ rust-translator -m fast
 
 某些无法自动获得选取文字的 Linux 应用现在可以通过 `ctrl-c` 来复制文字之后自动翻译。
 
+## 清屏模式
+
 **新增清屏模式**
 
-默认参数下每次翻译都会清空之前的翻译。
+此模式下的默认参数下每次翻译都会清空之前的翻译。
 
 ```bash
 rust-translator --clear
@@ -123,6 +131,8 @@ rust-translator --clear 3
 rust-translator -c 3
 ```
 
+## 不显示原文
+
 **新增不显示原文选项**
 
 如果在翻译的时候想不显示原文，可以使用如下选项：
@@ -136,6 +146,8 @@ rust-translator --no-original
 ```bash
 rust-translator -n
 ```
+
+## 不自动断句
 
 **新增不自动断句**
 
@@ -159,8 +171,8 @@ rust-translator -d
 
 release 页面有多个版本下载：
 
-* ~~Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的~~（Linux 默认的 glibc 在某些旧发行版上会出现报错）
 * Linux 另一个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间小可移植性好）
-* ~~Windows 版本是使用 `x86_64-pc-windows-gnu` 静态编译的~~（和 Windows 的默认编译器 MSVC 对比来说可能会有一些 bug ）
-* Windows 另一个版本是用 `x86_64-pc-windows-msvc` 静态编译的
-* ~~ARM 本是使用 `aarch64-unknown-linux-gnu` 静态编译的~~（没什么人用）
+* Windows 另一个版本是用 `x86_64-pc-windows-msvc` 静态编译的（微软提供的 MSVC 编译器）
+* ~~Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的~~（Linux 默认的 glibc 在某些旧发行版上会出现报错）
+* ~~Windows 版本是使用 `x86_64-pc-windows-gnu` 静态编译的~~（和 Windows 的默认编译器 MSVC 相比来说可能会有一些 bug ）
+* ~~ARM 版本是使用 `aarch64-unknown-linux-gnu` 静态编译的~~（没什么人用）
