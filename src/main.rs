@@ -498,7 +498,7 @@ fn main() {
         _ => Some(args.proxy),
     };
     let clear_times: i32 = args.clear.parse().unwrap();
-    println!("c: {}", clear_times);
+    // println!("c: {}", clear_times);
     let clear_mode = match clear_times {
         0 => false,
         _ => true,
