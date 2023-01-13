@@ -13,5 +13,5 @@ cargo build --release --target x86_64-unknown-linux-musl
 # cargo build --release --target x86_64-pc-windows-gnu
 
 # run at the windows
-# RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --target x86_64-pc-windows-msvc
+# cargo build --release --target x86_64-pc-windows-msvc
 # mv ./.cargo/config.toml ./.cargo/config.toml.bak
