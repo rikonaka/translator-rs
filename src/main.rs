@@ -529,7 +529,7 @@ fn main() {
         "true" => true,
         _ => false,
     };
-    println!("s: {}", stop_linux_clipboard);
+    // println!("s: {}", stop_linux_clipboard);
 
     if cfg!(target_os = "linux") {
         println!("{}", "Working...".bold().yellow());
