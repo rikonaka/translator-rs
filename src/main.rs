@@ -78,6 +78,14 @@ struct Args {
         default_missing_value = "true"
     )]
     disable_auto_break: String,
+    /// linux stop get text from clipboard
+    #[clap(
+        long,
+        value_parser,
+        default_value = "false",
+        default_missing_value = "true"
+    )]
+    stop_linux_clipboard: String,
 }
 
 #[tokio::main]
@@ -405,6 +413,7 @@ fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
         }
     };
     let output = String::from_utf8_lossy(&output.stdout).to_string();
+    // println!("select text linux: {}", &output);
     if output.trim().len() > 0 {
         return Ok(output.trim().to_string());
     } else {
@@ -412,7 +421,7 @@ fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
     }
 }
 
-pub fn get_text() -> String {
+pub fn get_text(stop_linux_clipboard: bool) -> String {
     /*
     type, result
     0 => select text
@@ -437,20 +446,24 @@ pub fn get_text() -> String {
     };
     if cfg!(target_os = "linux") {
         match get_select_text_linux() {
-            Ok(t) => {
-                if t.trim().len() != 0 {
-                    return filter(&t);
-                } else {
-                    let t = match get_clipboard_text() {
-                        Ok(t) => t,
-                        Err(e) => {
-                            println!("get select text (linux) failed: {}", e);
-                            return "".to_string();
-                        }
-                    };
-                    return filter(&t);
+            Ok(t) => match stop_linux_clipboard {
+                false => {
+                    // we still need get text from linux's clipboard
+                    if t.trim().len() != 0 {
+                        return filter(&t);
+                    } else {
+                        let t = match get_clipboard_text() {
+                            Ok(t) => t,
+                            Err(e) => {
+                                println!("get select text (linux) failed: {}", e);
+                                return "".to_string();
+                            }
+                        };
+                        return filter(&t);
+                    }
                 }
-            }
+                _ => return filter(&t),
+            },
             Err(e) => {
                 println!("get select text (linux) failed: {}", e);
                 return "".to_string();
@@ -512,13 +525,18 @@ fn main() {
         "true" => true,
         _ => false,
     };
+    let stop_linux_clipboard = match args.stop_linux_clipboard.as_str() {
+        "true" => true,
+        _ => false,
+    };
+    println!("s: {}", stop_linux_clipboard);
 
     if cfg!(target_os = "linux") {
         println!("{}", "Working...".bold().yellow());
         let mut sub_clear_times = clear_times;
         loop {
             thread::sleep(sleep_time);
-            let selected_text = get_text();
+            let selected_text = get_text(stop_linux_clipboard);
             if selected_text.len() > 0 {
                 if clear_mode {
                     if sub_clear_times == 0 {
@@ -540,7 +558,7 @@ fn main() {
         let mut sub_clear = clear_times;
         loop {
             thread::sleep(sleep_time);
-            let clipboard_text = get_text();
+            let clipboard_text = get_text(false);
             if clipboard_text.len() > 0 {
                 if clear_mode {
                     if sub_clear == 0 {
