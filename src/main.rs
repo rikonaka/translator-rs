@@ -534,10 +534,14 @@ fn main() {
     if cfg!(target_os = "linux") {
         println!("{}", "Working...".bold().yellow());
         let mut sub_clear_times = clear_times;
+        let mut last_selected_text = String::from("");
         loop {
             thread::sleep(sleep_time);
             let selected_text = get_text(stop_linux_clipboard);
-            if selected_text.len() > 0 {
+            if selected_text.len() > 0 && last_selected_text != selected_text {
+                // println!("last: {}", &last_selected_text);
+                // println!("now: {}", &selected_text);
+                last_selected_text = selected_text.clone();
                 if clear_mode {
                     if sub_clear_times == 0 {
                         // send a control character to clear the terminal screen
