@@ -1,71 +1,98 @@
-# rust-translator
+# translator-rs
 
-一个用 rust 写的 PDF 论文简单实时翻译，翻译 API 为 Google 提供（主要支持 Linux 用户，Windows 用户也可以用但是貌似有比这还好的软件？）。
+A simple real time translation of PDF papers written in rust for Linux users, with a translation API for Google.
+To avoid misunderstandings, rename the program from `rust-translator` to `translator-rs`.
 
-支持单个单词查看详细相似翻译。
+# Features
+
+* A simple selection can be translated to speed up reading papers.
+* Long sentence translation with automatic sentence break.
+* Support single word to view detailed similar translation.
 
 ![example](./vids/example.gif)
 
-# Linux 使用
+# Installation
 
-## 使用之前请先安装 `xsel`
+## Linux
 
+Please install the `xsel` package before using it.
+
+
+**Installation on Debian and Ubuntu**
 ```bash
 sudo apt install xsel
 ```
 
-将 release 页面下的压缩包解压到本地，之后将二进制文件放到 `/usr/bin` 下（任何PATH目录都行），之后运行命令：
-
-```
-rust-translator
-```
-
-或者进入解压后的目录直接执行：
-
-```
-./rust-translator
+**Installation on Fedora**
+```bash
+sudo dnf install xsel
 ```
 
-## 使用
+Unpack the Linux package from the [release](https://github.com/rikonaka/translator-rs/releases) page, then place the binary file in `/usr/bin` (any `PATH` directory such `/usr/local/bin` you want).
 
-直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome&Wayland 桌面环境上测试过，还有 Kubuntu22.04 的 Plasma 桌面，其他桌面没有测试过）。
+### Self-compiling and installation
 
-## 如要自行编译
-
-编译之前请先安装依赖（`Debian` or `Ubuntu`）
+Please install the dependencies before compiling（`Debian` and `Ubuntu`）
 
 ```bash
 sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
-# Windows 使用
+## Windows
 
-下载对应的 Windows 版本之后直接双击运行，和 Linux 版本不同的是，Windows 版本鼠标选出要翻译的文字之后，还要再按一个 `ctrl-c`（复制）。
+Unpack the Windows package from the [release](https://github.com/rikonaka/translator-rs/releases) page.
 
-# 使用说明
 
-## 代理选项
+# Usage
 
-**根据最新的防火墙规则（GFW）已经将 Google 翻译 API 列入黑名单，所以新增 proxy 选项。**
+## Linux
 
-所以如果出现访问超时的情况，请考虑为翻译软件设置代理，目前支持代理：
+If the binary file is **already in the PATH** directory, you can run the following command directly.
 
-* https 代理
-* socks5 代理
-
-```bash
-rust-translator --proxy socks5://192.168.122.67:1080
+```
+translator-rs
 ```
 
-或者缩写：
+If not, use the terminal run with following command.
 
-```bash
-rust-translator -p socks5://192.168.122.67:1080
+```
+./translator-rs
 ```
 
-## 切换翻译语种
+Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X11 desktop environment and Kubuntu22.04 Plasma desktop).
 
-目前支持的翻译语种包含了：
+
+## Windows
+
+After downloading the Windows version, you can run it directly by double-clicking on it.
+
+Unlike the Linux version, the Windows version has to press `ctrl-c` (copy) after selecting the text to be translated with the mouse.
+
+
+## Option Description
+
+### Proxy Options
+
+**The Google Translate API has been blacklisted according to the latest firewall rules (GFW), so a proxy option has been added.**
+
+So if there is an access timeout, please consider setting a proxy for the translation software, which currently supports the following proxies.
+
+* https proxy
+* socks5 proxy
+
+```bash
+translator-rs --proxy socks5://192.168.122.67:1080
+```
+
+Or.
+
+```bash
+translator-rs -p socks5://192.168.122.67:1080
+```
+
+### Switching translation languages
+
+The languages currently supported for translation include.
 
 * English
 * Chinese
@@ -73,106 +100,98 @@ rust-translator -p socks5://192.168.122.67:1080
 * French
 * German
 
-如有翻译其他语言的需要，请使用如下命令来指定`源语言`和`目标语言`：
+If you need to translate into another language rather then default, use the following command to specify `source language` and `target language`.
 
 ```bash
-rust-translator --sourcelanguage Engligh --targetlanguage French
+translator-rs --sourcelanguage Engligh --targetlanguage French
 ```
 
-或者缩写
+Or.
 
 ```bash
-rust-translator -s Engligh -t French
+translator-rs -s Engligh -t French
 ```
 
-## 加快翻译速度
+### Faster sampling speed
 
-如果觉得翻译速度慢可以使用 `fast` 模式（功耗可能会比 `slow` 模式高，默认是 `slow` 模式）：
+If you think the translation speed is slow, you can use `fast` mode (power consumption may be higher than `slow` mode, the default is `slow` mode).
 
 ```bash
-rust-translator --mode fast
+translator-rs --mode fast
 ```
 
-或者缩写：
+Or.
 
 ```bash
-rust-translator -m fast
+translator-rs -m fast
 ```
 
-**新增对 Linux 上某些无法自动获得选取文字应用上的支持**
+**Added support for some applications on Linux that do not automatically get selected text**
 
-某些无法自动获得选取文字的 Linux 应用现在可以通过 `ctrl-c` 来复制文字之后自动翻译。
+Some Linux applications that do not automatically get the selected text can now automatically translate it after copying the text via `ctrl-c`, like `Zotero`.
 
-## 清屏模式
+### Clear Screen Mode
 
-**新增清屏模式**
+**New clear screen mode**
 
-此模式下的默认参数下每次翻译都会清空之前的翻译。
+The default parameter in this mode clears the previous translations for each `n` translation.
 
 ```bash
-rust-translator --clear
+translator-rs --clear
 ```
 
-或者缩写：
+Or.
 
 ```bash
-rust-translator -c
+translator-rs -c
 ```
 
-如果想在翻译三次之后清屏，可以使用如下命令：
+If you want to clear the screen after three translations, you can use the following command.
 
 ```bash
-rust-translator --clear 3
+translator-rs --clear 3
 ```
 
-或者缩写：
+Or.
 
 ```bash
-rust-translator -c 3
+translator-rs -c 3
 ```
 
-## 不显示原文
+### Do not show original text
 
-**新增不显示原文选项**
+**New option of not showing original text**
 
-如果在翻译的时候想不显示原文，可以使用如下选项：
+If you want to not show the original text when translating, you can use the following options.
 
 ```bash
-rust-translator --no-original
+translator-rs --no-original
 ```
 
-或者缩写：
+Or.
 
 ```bash
-rust-translator -n
+translator-rs -n
 ```
 
-## 不自动断句
+### No automatic sentence break
 
-**新增不自动断句**
+**Added no automatic sentence break**
 
-如果不想自动断句，可以使用选项：
+If you do not want to break the sentence automatically, you can use the option.
 
 ```bash
-rust-translator --disable-auto-break
+translator-rs --disable-auto-break
 ```
 
-或者缩写：
+Or.
 
 ```bash
-rust-translator -d
+translator-rs -d
 ```
 
-# 为什么不支持 gui 或者 tui？
+# Why don't you support gui or tui?
 
-不想在这方面浪费时间，能满足使用就行😘（科研压力大...三天以上的工程就不考虑了，如果有人愿意提供一份 ui，可以一起合作将核心功能和 ui 融合起来）。
+Do not want to waste time in this area, can meet the use of the line 😘, in fact, there is no need for this.
 
-# release
-
-release 页面有多个版本下载：
-
-* Linux 另一个版本是使用 `x86_64-unknown-linux-musl` 静态编译的（占用空间小可移植性好）
-* Windows 另一个版本是用 `x86_64-pc-windows-msvc` 静态编译的（微软提供的 MSVC 编译器）
-* ~~Linux 一个版本版本是使用 `x86_64-unknown-linux-gnu` 静态编译的~~（Linux 默认的 glibc 在某些旧发行版上会出现报错）
-* ~~Windows 版本是使用 `x86_64-pc-windows-gnu` 静态编译的~~（和 Windows 的默认编译器 MSVC 相比来说可能会有一些 bug ）
-* ~~ARM 版本是使用 `aarch64-unknown-linux-gnu` 静态编译的~~（没什么人用）
+You are welcome to submit any code to improve the program.
