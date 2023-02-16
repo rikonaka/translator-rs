@@ -88,7 +88,6 @@ struct Args {
     stop_linux_clipboard: String,
 }
 
-#[tokio::main]
 async fn google_translate_longstring(
     sl: &str, // source language
     tl: &str, // target language
@@ -148,7 +147,6 @@ async fn google_translate_longstring(
     Ok(result_vec)
 }
 
-#[tokio::main]
 async fn google_translate_shortword(
     sl: &str,
     tl: &str,
@@ -234,17 +232,14 @@ async fn google_translate_shortword(
     Ok(result_vec)
 }
 
-fn contains_symbol(input_string: &str) -> bool {
-    input_string.contains(" ")
-}
-
-pub fn translate<'a>(
+async fn translate<'a>(
     sl: &'a str,
     tl: &'a str,
     translate_string: &'a str,
     index: usize,
     proxy_str: &'a Option<String>,
 ) -> TranslateResult<'a> {
+    let contains_symbol = |input_string: &str| -> bool { input_string.contains(" ") };
     let start_time = SystemTime::now();
     // let proxy = reqwest::Proxy::http("socks5://192.168.1.1:9000").expect("set proxy failed");
     let proxy = match proxy_str {
@@ -252,14 +247,14 @@ pub fn translate<'a>(
         _ => None,
     };
     let result_vec = match contains_symbol(translate_string) {
-        true => match google_translate_longstring(sl, tl, translate_string, proxy) {
+        true => match google_translate_longstring(sl, tl, translate_string, proxy).await {
             Ok(r) => r,
             Err(e) => {
                 println!("translate failed: {}", e);
                 vec![]
             }
         },
-        false => match google_translate_shortword(sl, tl, translate_string, proxy) {
+        false => match google_translate_shortword(sl, tl, translate_string, proxy).await {
             Ok(r) => r,
             Err(e) => {
                 println!("translate failed: {}", e);
@@ -422,11 +417,6 @@ fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
 }
 
 pub fn get_text(stop_linux_clipboard: bool) -> String {
-    /*
-    type, result
-    0 => select text
-    1 => copy text
-    */
     let filter = |x: &str| -> String {
         let x = match x.strip_prefix(".") {
             Some(x) => x,
@@ -498,7 +488,36 @@ pub fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (
     (sl_result, tl_result)
 }
 
-fn main() {
+#[cfg(test)]
+mod tests {
+    use super::*;
+    async fn googleapis(text: &str) -> Result<(), Box<dyn Error>> {
+        let translate_url = format!(
+            "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dt=t&q={}",
+            "en", "zh-CN", text
+        );
+        let proxy = reqwest::Proxy::https("socks5://127.0.0.1:1080").expect("set proxy failed");
+        let client = reqwest::Client::builder()
+            .proxy(proxy)
+            .build()
+            .expect("proxy client build failed");
+
+        let request_result = client.get(translate_url).send().await?.text().await?;
+
+        println!("google: {}", &request_result);
+        Ok(())
+    }
+    #[tokio::test]
+    async fn test_googleapis() {
+        match googleapis("test").await {
+            Ok(_) => (),
+            Err(e) => panic!("googleapis error: {}", e),
+        }
+    }
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
     let mut index: usize = 1;
     let args = Args::parse();
     let (sl, tl) = convert_args(&args.sourcelanguage, &args.targetlanguage);
@@ -552,7 +571,7 @@ fn main() {
                     }
                     sub_clear_times -= 1;
                 }
-                let translate_result = translate(&sl, &tl, &selected_text, index, &proxy_str);
+                let translate_result = translate(&sl, &tl, &selected_text, index, &proxy_str).await;
                 translate_result.show(no_original, not_auto_break);
                 index += 1;
             }
@@ -574,7 +593,8 @@ fn main() {
                     }
                     sub_clear -= 1;
                 }
-                let translate_result = translate(&sl, &tl, &clipboard_text, index, &proxy_str);
+                let translate_result =
+                    translate(&sl, &tl, &clipboard_text, index, &proxy_str).await;
                 translate_result.show(no_original, not_auto_break);
                 index += 1;
             }
