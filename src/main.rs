@@ -416,7 +416,7 @@ fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
     }
 }
 
-pub fn get_text(stop_linux_clipboard: bool) -> String {
+fn get_text(stop_linux_clipboard: bool) -> String {
     let filter = |x: &str| -> String {
         let x = match x.strip_prefix(".") {
             Some(x) => x,
@@ -471,7 +471,7 @@ pub fn get_text(stop_linux_clipboard: bool) -> String {
     "".to_string()
 }
 
-pub fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
+fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
     let convert_language = |x: &str| -> &str {
         let result = match x {
             "English" => "en",
