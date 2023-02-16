@@ -3,6 +3,8 @@
 A simple real time translation of PDF papers written in rust for Linux users, with a translation API for Google.
 To avoid misunderstandings, rename the program from `rust-translator` to `translator-rs`.
 
+[中文帮助](https://github.com/rikonaka/translator-rs/blob/main/README_zh.md)
+
 # Features
 
 * A simple selection can be translated to speed up reading papers.
