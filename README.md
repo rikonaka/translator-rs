@@ -38,11 +38,6 @@ Please install the dependencies before compiling（`Debian` and `Ubuntu`）
 sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
-## Windows
-
-Unpack the Windows package from the [release](https://github.com/rikonaka/translator-rs/releases) page.
-
-
 # Usage
 
 ## Linux
@@ -60,14 +55,6 @@ If not, use the terminal run with following command.
 ```
 
 Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X11 desktop environment and Kubuntu22.04 Plasma desktop).
-
-
-## Windows
-
-After downloading the Windows version, you can run it directly by double-clicking on it.
-
-Unlike the Linux version, the Windows version has to press `ctrl-c` (copy) after selecting the text to be translated with the mouse.
-
 
 ## Option Description
 

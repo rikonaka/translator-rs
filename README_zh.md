@@ -38,10 +38,6 @@ translator-rs
 sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
-# Windows 使用
-
-下载对应的 Windows 版本之后直接双击运行，和 Linux 版本不同的是，Windows 版本鼠标选出要翻译的文字之后，还要再按一个 `ctrl-c`（复制）。
-
 # 选项说明
 
 ## 代理选项
