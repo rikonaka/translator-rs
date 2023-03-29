@@ -28,7 +28,7 @@ struct Args {
     #[clap(short, long, value_parser, default_value = "null")]
     proxy: String,
     /// translate new text and clear the screen
-    #[clap(long, value_parser, default_value_t = 0)]
+    #[clap(short, long, value_parser, default_value_t = 0)]
     clear: i32,
     /// show original text or not
     #[clap(long, action)]

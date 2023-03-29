@@ -62,9 +62,9 @@ Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X1
 
 ### Proxy Options
 
-**The Google Translate API has been blacklisted according to the latest firewall rules (GFW), so a proxy option has been added.**
+**The Google Translate API has been blacklisted in China (2022-9-29), according to the latest firewall rules (GFW), so a proxy option has been added.**
 
-So if there is an access timeout, please consider setting a proxy for the translation software, which currently supports the following proxies.
+If there is an access timeout, please consider setting a proxy for the translation software, which currently supports the following proxies.
 
 * https proxy
 * socks5 proxy
@@ -115,10 +115,6 @@ Or.
 translator-rs -m fast
 ```
 
-**Added support for some applications on Linux that do not automatically get selected text**
-
-Some Linux applications that do not automatically get the selected text can now automatically translate it after copying the text via `ctrl-c`, like `Zotero`.
-
 ### Clear Screen Mode
 
 **New clear screen mode**
@@ -157,12 +153,6 @@ If you want to not show the original text when translating, you can use the foll
 translator-rs --no-original
 ```
 
-Or.
-
-```bash
-translator-rs -n
-```
-
 ### No automatic sentence break
 
 **Added no automatic sentence break**
@@ -173,10 +163,14 @@ If you do not want to break the sentence automatically, you can use the option.
 translator-rs --disable-auto-break
 ```
 
-Or.
+### Others
+
+**Added support for some applications on Linux that do not automatically get selected text**
+
+Some Linux applications that do not automatically get the selected text can now automatically translate it after copying the text via `ctrl-c`, like `Zotero`.
 
 ```bash
-translator-rs -d
+translator-rs --linux-use-clipboard
 ```
 
 # Why don't you support gui or tui?
