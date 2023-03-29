@@ -16,76 +16,29 @@ const TIMEOUT: u64 = 9;
 #[clap(author, version, about, long_about = None)]
 struct Args {
     /// source language
-    #[clap(
-        short,
-        long,
-        value_parser,
-        default_value = "English",
-        default_missing_value = "English"
-    )]
+    #[clap(short, long, value_parser, default_value = "English")]
     sourcelanguage: String,
     /// target translation language
-    #[clap(
-        short,
-        long,
-        value_parser,
-        default_value = "Chinese",
-        default_missing_value = "Chinese"
-    )]
+    #[clap(short, long, value_parser, default_value = "Chinese")]
     targetlanguage: String,
     /// fast mode or slow mode
-    #[clap(
-        short,
-        long,
-        value_parser,
-        default_value = "slow",
-        default_missing_value = "slow"
-    )]
-    mode: String,
+    #[clap(short, long, action)]
+    fast_mode: bool,
     /// proxy set (socks5://192.168.1.1:9000)
-    #[clap(
-        short,
-        long,
-        value_parser,
-        default_value = "none",
-        default_missing_value = "none"
-    )]
+    #[clap(short, long, value_parser, default_value = "null")]
     proxy: String,
     /// translate new text and clear the screen
-    #[clap(
-        short,
-        long,
-        value_parser,
-        default_value = "0",
-        default_missing_value = "0"
-    )]
-    clear: String,
+    #[clap(long, value_parser, default_value_t = 0)]
+    clear: i32,
     /// show original text or not
-    #[clap(
-        short,
-        long,
-        value_parser,
-        default_value = "false",
-        default_missing_value = "true"
-    )]
-    no_original: String,
+    #[clap(long, action)]
+    no_original: bool,
     /// auto break the sentence or not
-    #[clap(
-        short,
-        long,
-        value_parser,
-        default_value = "false",
-        default_missing_value = "true"
-    )]
-    disable_auto_break: String,
+    #[clap(long, action)]
+    disable_auto_break: bool,
     /// linux stop get text from clipboard
-    #[clap(
-        long,
-        value_parser,
-        default_value = "false",
-        default_missing_value = "true"
-    )]
-    stop_linux_clipboard: String,
+    #[clap(long, action)]
+    stop_linux_clipboard: bool,
 }
 
 async fn google_translate_longstring(
@@ -521,33 +474,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut index: usize = 1;
     let args = Args::parse();
     let (sl, tl) = convert_args(&args.sourcelanguage, &args.targetlanguage);
-    let sleep_time = match args.mode.as_str() {
-        "fast" => Duration::from_secs_f32(0.3),
+    let sleep_time = match args.fast_mode {
+        true => Duration::from_secs_f32(0.3),
         _ => Duration::from_secs(1),
     };
     let proxy_str = match args.proxy.as_str() {
         "none" => None,
         _ => Some(args.proxy),
     };
-    let clear_times: i32 = args.clear.parse().unwrap();
+    let clear_times = args.clear;
     // println!("c: {}", clear_times);
     let clear_mode = match clear_times {
         0 => false,
         _ => true,
     };
     // println!("clear: {}", clear_times);
-    let no_original = match args.no_original.as_str() {
-        "true" => true,
-        _ => false,
-    };
-    let not_auto_break = match args.disable_auto_break.as_str() {
-        "true" => true,
-        _ => false,
-    };
-    let stop_linux_clipboard = match args.stop_linux_clipboard.as_str() {
-        "true" => true,
-        _ => false,
-    };
+    let no_original = args.no_original;
+    let not_auto_break = args.disable_auto_break;
+    let stop_linux_clipboard = args.stop_linux_clipboard;
     // println!("s: {}", stop_linux_clipboard);
 
     if cfg!(target_os = "linux") {
