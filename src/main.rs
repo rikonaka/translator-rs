@@ -38,7 +38,7 @@ struct Args {
     disable_auto_break: bool,
     /// linux stop get text from clipboard
     #[clap(long, action)]
-    stop_linux_clipboard: bool,
+    linux_use_clipboard: bool,
 }
 
 async fn google_translate_longstring(
@@ -369,8 +369,22 @@ fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
     }
 }
 
-fn get_text(stop_linux_clipboard: bool) -> String {
+struct GetText {
+    text: String,
+    text_type: String,
+}
+
+impl GetText {
+    fn new(text: &str, text_type: &str) -> GetText {
+        let text = text.to_string();
+        let text_type = text_type.to_string();
+        GetText { text, text_type }
+    }
+}
+
+fn get_text(linux_use_clipboard: bool) -> GetText {
     let filter = |x: &str| -> String {
+        let x = x.trim();
         let x = match x.strip_prefix(".") {
             Some(x) => x,
             _ => x,
@@ -388,40 +402,60 @@ fn get_text(stop_linux_clipboard: bool) -> String {
             .to_string()
     };
     if cfg!(target_os = "linux") {
-        match get_select_text_linux() {
-            Ok(t) => match stop_linux_clipboard {
-                false => {
-                    // we still need get text from linux's clipboard
-                    if t.trim().len() != 0 {
-                        return filter(&t);
-                    } else {
-                        let t = match get_clipboard_text() {
-                            Ok(t) => t,
-                            Err(e) => {
-                                println!("get select text (linux) failed: {}", e);
-                                return "".to_string();
+        match linux_use_clipboard {
+            true => {
+                let t = match get_select_text_linux() {
+                    Ok(t) => {
+                        // get text from select, if select is none, get from clipboard
+                        let t = t.trim().to_string();
+                        if t.len() > 0 {
+                            t
+                        } else {
+                            match get_clipboard_text() {
+                                Ok(t) => t,
+                                Err(e) => {
+                                    println!("get clipboard text (linux) failed: {}", e);
+                                    "".to_string()
+                                }
                             }
-                        };
-                        return filter(&t);
+                        }
                     }
-                }
-                _ => return filter(&t),
-            },
-            Err(e) => {
-                println!("get select text (linux) failed: {}", e);
-                return "".to_string();
+                    Err(e) => {
+                        println!("get clipboard text (linux) failed: {}", e);
+                        "".to_string()
+                    }
+                };
+                let ft = filter(&t);
+                return GetText::new(&ft, "clipboard");
+            }
+            _ => {
+                let t = match get_select_text_linux() {
+                    Ok(t) => {
+                        // only get text from select
+                        t
+                    }
+                    Err(e) => {
+                        println!("get select text (linux) failed: {}", e);
+                        "".to_string()
+                    }
+                };
+                let ft = filter(&t);
+                return GetText::new(&ft, "select");
             }
         }
     } else if cfg!(target_os = "windows") {
-        match get_clipboard_text() {
-            Ok(t) => return filter(&t),
+        let t = match get_clipboard_text() {
+            Ok(t) => t,
             Err(e) => {
                 println!("get select text (windows) failed: {}", e);
-                return "".to_string();
+                "".to_string()
             }
-        }
+        };
+        let ft = filter(&t);
+        return GetText::new(&ft, "clipboard");
+    } else {
+        GetText::new("", "clipboard")
     }
-    "".to_string()
 }
 
 fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
@@ -469,6 +503,19 @@ mod tests {
     }
 }
 
+trait NewVec {
+    fn top(&mut self) -> String;
+}
+
+impl NewVec for Vec<String> {
+    fn top(&mut self) -> String {
+        match self.len() {
+            0 => "".to_string(),
+            n => self[n - 1].clone(),
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let mut index: usize = 1;
@@ -491,20 +538,46 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // println!("clear: {}", clear_times);
     let no_original = args.no_original;
     let not_auto_break = args.disable_auto_break;
-    let stop_linux_clipboard = args.stop_linux_clipboard;
-    // println!("s: {}", stop_linux_clipboard);
-
+    let linux_use_clipboard = args.linux_use_clipboard;
+    // println!("l: {}", linux_use_clipboard);
     if cfg!(target_os = "linux") {
         println!("{}", "Working...".bold().yellow());
         let mut sub_clear_times = clear_times;
-        let mut last_selected_text = String::from("");
+        // let mut last_selected_text = String::from("");
+        let mut last_select_texts: String = String::from("");
+        let mut clipboard_texts: Vec<String> = Vec::new();
         loop {
+            // worker area
             thread::sleep(sleep_time);
-            let selected_text = get_text(stop_linux_clipboard);
-            if selected_text.len() > 0 && last_selected_text != selected_text {
+            let get_text = get_text(linux_use_clipboard);
+            let condition = if get_text.text.len() > 0 {
+                match get_text.text_type.as_str() {
+                    "select" => {
+                        let ret = if last_select_texts != get_text.text {
+                            true
+                        } else {
+                            false
+                        };
+                        last_select_texts = get_text.text.clone();
+                        ret
+                    }
+                    _ => {
+                        let ret = if clipboard_texts.contains(&get_text.text) {
+                            false
+                        } else {
+                            true
+                        };
+                        clipboard_texts.push(get_text.text.clone());
+                        ret
+                    }
+                }
+            } else {
+                false
+            };
+
+            if condition {
                 // println!("last: {}", &last_selected_text);
                 // println!("now: {}", &selected_text);
-                last_selected_text = selected_text.clone();
                 if clear_mode {
                     if sub_clear_times == 0 {
                         // send a control character to clear the terminal screen
@@ -515,7 +588,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     sub_clear_times -= 1;
                 }
-                let translate_result = translate(&sl, &tl, &selected_text, index, &proxy_str).await;
+                let translate_result = translate(&sl, &tl, &get_text.text, index, &proxy_str).await;
                 translate_result.show(no_original, not_auto_break);
                 index += 1;
             }
@@ -526,7 +599,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         loop {
             thread::sleep(sleep_time);
             let clipboard_text = get_text(false);
-            if clipboard_text.len() > 0 {
+            if clipboard_text.text.len() > 0 {
                 if clear_mode {
                     if sub_clear == 0 {
                         // send a control character to clear the terminal screen
@@ -538,7 +611,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     sub_clear -= 1;
                 }
                 let translate_result =
-                    translate(&sl, &tl, &clipboard_text, index, &proxy_str).await;
+                    translate(&sl, &tl, &clipboard_text.text, index, &proxy_str).await;
                 translate_result.show(no_original, not_auto_break);
                 index += 1;
             }
@@ -547,3 +620,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         panic!("not support running at the other system!");
     }
 }
+
+// fn main() {
+//     run();
+// }
