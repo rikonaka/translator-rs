@@ -545,32 +545,32 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let mut sub_clear_times = clear_times;
         // let mut last_selected_text = String::from("");
         let mut last_select_texts: String = String::from("");
-        let mut clipboard_texts: Vec<String> = Vec::new();
+        let mut last_clipboard_texts: String = String::from("");
         loop {
             // worker area
             thread::sleep(sleep_time);
             let get_text = get_text(linux_use_clipboard);
             let condition = if get_text.text.len() > 0 {
+                let ret = if get_text.text != last_clipboard_texts
+                    && get_text.text != last_clipboard_texts
+                {
+                    true
+                } else {
+                    false
+                };
                 match get_text.text_type.as_str() {
                     "select" => {
-                        let ret = if last_select_texts != get_text.text {
-                            true
-                        } else {
-                            false
-                        };
-                        last_select_texts = get_text.text.clone();
-                        ret
+                        if last_select_texts != get_text.text {
+                            last_select_texts = get_text.text.clone();
+                        }
                     }
                     _ => {
-                        let ret = if clipboard_texts.contains(&get_text.text) {
-                            false
-                        } else {
-                            true
-                        };
-                        clipboard_texts.push(get_text.text.clone());
-                        ret
+                        if last_clipboard_texts != get_text.text {
+                            last_clipboard_texts = get_text.text.clone();
+                        }
                     }
                 }
+                ret
             } else {
                 false
             };
