@@ -477,42 +477,9 @@ fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a 
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    async fn googleapis(text: &str) -> Result<(), Box<dyn Error>> {
-        let translate_url = format!(
-            "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dt=t&q={}",
-            "en", "zh-CN", text
-        );
-        let proxy = reqwest::Proxy::https("socks5://127.0.0.1:1080").expect("set proxy failed");
-        let client = reqwest::Client::builder()
-            .proxy(proxy)
-            .build()
-            .expect("proxy client build failed");
-
-        let request_result = client.get(translate_url).send().await?.text().await?;
-
-        println!("google: {}", &request_result);
-        Ok(())
-    }
-    #[tokio::test]
-    async fn test_googleapis() {
-        match googleapis("test").await {
-            Ok(_) => (),
-            Err(e) => panic!("googleapis error: {}", e),
-        }
-    }
-}
-
-trait NewVec {
-    fn top(&mut self) -> String;
-}
-
-impl NewVec for Vec<String> {
-    fn top(&mut self) -> String {
-        match self.len() {
-            0 => "".to_string(),
-            n => self[n - 1].clone(),
-        }
+    #[test]
+    fn test() {
+        assert_eq!(2 + 2, 4);
     }
 }
 
@@ -620,7 +587,3 @@ async fn main() -> Result<(), Box<dyn Error>> {
         panic!("not support running at the other system!");
     }
 }
-
-// fn main() {
-//     run();
-// }
