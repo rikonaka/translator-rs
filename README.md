@@ -20,12 +20,14 @@ To avoid misunderstandings, rename the program from `rust-translator` to `transl
 Please install the `xsel` package before using it.
 
 
-**Installation on Debian and Ubuntu**
+### Installation on Debian and Ubuntu
+
 ```bash
 sudo apt install xsel
 ```
 
-**Installation on Fedora**
+### Installation on Fedora
+
 ```bash
 sudo dnf install xsel
 ```
@@ -46,13 +48,13 @@ sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-d
 
 If the binary file is **already in the PATH** directory, you can run the following command directly.
 
-```
+```bash
 translator-rs
 ```
 
 If not, use the terminal run with following command.
 
-```
+```bash
 ./translator-rs
 ```
 
@@ -70,13 +72,13 @@ If there is an access timeout, please consider setting a proxy for the translati
 * socks5 proxy
 
 ```bash
-translator-rs --proxy socks5://127.0.0.1:1080
+translator-rs --proxy socks5://YOUR_PROXY_SERVER_IP:1080
 ```
 
 Or.
 
 ```bash
-translator-rs -p socks5://192.168.122.67:1080
+translator-rs -p socks5://YOUR_PROXY_SERVER_IP:1080
 ```
 
 ### Switching translation languages
