@@ -70,7 +70,7 @@ If there is an access timeout, please consider setting a proxy for the translati
 * socks5 proxy
 
 ```bash
-translator-rs --proxy socks5://192.168.122.67:1080
+translator-rs --proxy socks5://127.0.0.1:1080
 ```
 
 Or.
