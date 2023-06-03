@@ -72,13 +72,13 @@ If there is an access timeout, please consider setting a proxy for the translati
 * socks5 proxy
 
 ```bash
-translator-rs --proxy socks5://YOUR_PROXY_SERVER_IP:1080
+translator-rs --proxy socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
 ```
 
 Or.
 
 ```bash
-translator-rs -p socks5://YOUR_PROXY_SERVER_IP:1080
+translator-rs -p socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
 ```
 
 ### Switching translation languages
