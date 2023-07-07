@@ -1,11 +1,12 @@
 # translator-rs
 
-A simple real time translation of PDF papers written in rust for Linux users, with a translation API for Google.
-To avoid misunderstandings, rename the program from `rust-translator` to `translator-rs`.
+A simple real time translation of PDF papers written in rust for Linux users, with a translation API for Google. To avoid misunderstandings, rename the program from `rust-translator` to `translator-rs`.
+
+[![Rust](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml)
 
 [中文帮助](https://github.com/rikonaka/translator-rs/blob/main/README_zh.md)
 
-# Features
+## Features
 
 * A simple selection can be translated to speed up reading papers.
 * Long sentence translation with automatic sentence break.
@@ -13,12 +14,9 @@ To avoid misunderstandings, rename the program from `rust-translator` to `transl
 
 ![example](./vids/example.gif)
 
-# Installation
-
-## Linux
+## Installation
 
 Please install the `xsel` package before using it.
-
 
 ### Installation on Debian and Ubuntu
 
@@ -42,9 +40,9 @@ Please install the dependencies before compiling（`Debian` and `Ubuntu`）
 sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
 ```
 
-# Usage
+## Usage
 
-## Linux
+### Linux
 
 If the binary file is **already in the PATH** directory, you can run the following command directly.
 
@@ -119,9 +117,7 @@ translator-rs -m fast
 
 ### Clear Screen Mode
 
-**New clear screen mode**
-
-The default parameter in this mode clears the previous translations for each `n` translation.
+New clear screen mode. The default parameter in this mode clears the previous translations for each `n` translation.
 
 ```bash
 translator-rs --clear
@@ -147,9 +143,7 @@ translator-rs -c 3
 
 ### Do not show original text
 
-**New option of not showing original text**
-
-If you want to not show the original text when translating, you can use the following options.
+New option of not showing original text. If you want to not show the original text when translating, you can use the following options.
 
 ```bash
 translator-rs --no-original
@@ -157,9 +151,7 @@ translator-rs --no-original
 
 ### No automatic sentence break
 
-**Added no automatic sentence break**
-
-If you do not want to break the sentence automatically, you can use the option.
+Added no automatic sentence break. If you do not want to break the sentence automatically, you can use the option.
 
 ```bash
 translator-rs --disable-auto-break
@@ -167,15 +159,13 @@ translator-rs --disable-auto-break
 
 ### Others
 
-**Added support for some applications on Linux that do not automatically get selected text**
-
-Some Linux applications that do not automatically get the selected text can now automatically translate it after copying the text via `ctrl-c`, like `Zotero`.
+Added support for some applications on Linux that do not automatically get selected text. Some Linux applications that do not automatically get the selected text can now automatically translate it after copying the text via `ctrl-c`, like `Zotero`.
 
 ```bash
 translator-rs --linux-use-clipboard
 ```
 
-# Why don't you support gui or tui?
+## Why don't you support gui or tui?
 
 Do not want to waste time in this area, can meet the use of the line 😘, in fact, there is no need for this.
 
