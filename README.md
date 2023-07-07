@@ -60,9 +60,11 @@ Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X1
 
 ## Option Description
 
-### Switch from the default google translate to deepl
+### Switch translate API
 
-**The translation API for DeepL is now supported, but requires the user to have an auth key.**
+**Switch from the default google translate to deepl.**
+
+The translation API for DeepL is now supported, but requires the user to have an auth key.
 
 ```bash
 translator-rs -a deepl --auth-key xxxxxxxx:xx
@@ -74,7 +76,7 @@ or pro
 translator-rs -a deeplpro --auth-key xxxxxxxx:xx
 ```
 
-### Proxy Options
+### Proxy options
 
 **The Google Translate API has been blacklisted in China (2022-9-29), according to the latest firewall rules (GFW), so a proxy option has been added.**
 
@@ -111,7 +113,7 @@ If you think the translation speed is slow, you can use `fast` mode (power consu
 translator-rs -f
 ```
 
-### Clear Screen Mode
+### Clear screen mode
 
 New clear screen mode. The default parameter in this mode clears the previous translations for each `n` translation.
 
