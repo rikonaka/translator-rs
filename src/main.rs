@@ -8,7 +8,7 @@ use std::{thread, time::Duration};
 mod deepl_api;
 mod google_api;
 mod utils;
-mod youdao_api;
+// mod youdao_api;
 
 use deepl_api::translate_free;
 use google_api::{translate_longstring, translate_shortword};
@@ -246,7 +246,12 @@ async fn main() -> Result<()> {
     let linux_use_clipboard = args.linux_use_clipboard;
     // println!("l: {}", linux_use_clipboard);
     if cfg!(target_os = "linux") {
-        println!("{}{}{}", "Working with ".green(), api.green().bold(), "...".green());
+        println!(
+            "{}{}{}",
+            "Working with ".green(),
+            api.green().bold(),
+            "...".green()
+        );
         let mut sub_clear_times = clear_times;
         // let mut last_selected_text = String::from("");
         let mut last_select_texts: String = String::from("");

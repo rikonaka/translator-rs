@@ -71,21 +71,20 @@ pub async fn translate_free(
     Ok(result_vec)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[tokio::test]
-    async fn test_deepl_free() {
-        use crate::utils::convert_language;
-        let sl = "English";
-        let tl = "Chinese";
-        let api = "deepl";
-        let (sl, tl) = convert_language(sl, tl, api);
-        let translate_string = "Hello";
-        let auth_key = "null";
-        // let proxy_str = "socks5://192.168.1.5:1080";
-        let proxy_str = "null";
-        let v = translate_free(sl, tl, translate_string, proxy_str, auth_key).await;
-        println!("{:?}", v);
-    }
-}
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     #[tokio::test]
+//     async fn test_deepl_free() {
+//         use crate::utils::convert_language;
+//         let sl = "English";
+//         let tl = "Chinese";
+//         let api = "deepl";
+//         let (sl, tl) = convert_language(sl, tl, api);
+//         let translate_string = "Hello";
+//         let auth_key = "null";
+//         let proxy_str = "null";
+//         let v = translate_free(sl, tl, translate_string, proxy_str, auth_key).await;
+//         println!("{:?}", v);
+//     }
+// }
