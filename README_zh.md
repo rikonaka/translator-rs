@@ -48,12 +48,6 @@ sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-d
 * socks5 代理
 
 ```bash
-translator-rs --proxy socks5://192.168.122.67:1080
-```
-
-或者缩写：
-
-```bash
 translator-rs -p socks5://192.168.122.67:1080
 ```
 
@@ -70,12 +64,6 @@ translator-rs -p socks5://192.168.122.67:1080
 如有翻译其他语言的需要，请使用如下命令来指定`源语言`和`目标语言`：
 
 ```bash
-translator-rs --sourcelanguage Engligh --targetlanguage French
-```
-
-或者缩写
-
-```bash
 translator-rs -s Engligh -t French
 ```
 
@@ -84,13 +72,7 @@ translator-rs -s Engligh -t French
 如果觉得翻译速度慢可以使用 `fast` 模式（功耗可能会比 `slow` 模式高，默认是 `slow` 模式）：
 
 ```bash
-translator-rs --mode fast
-```
-
-或者缩写：
-
-```bash
-translator-rs -m fast
+translator-rs -f
 ```
 
 新增对 Linux 上某些无法自动获得选取文字应用上的支持。某些无法自动获得选取文字的 Linux 应用现在可以通过 `ctrl-c` 来复制文字之后自动翻译。
@@ -100,22 +82,10 @@ translator-rs -m fast
 此模式下的默认参数下每次翻译都会清空之前的翻译。
 
 ```bash
-translator-rs --clear
-```
-
-或者缩写：
-
-```bash
 translator-rs -c
 ```
 
 如果想在翻译三次之后清屏，可以使用如下命令：
-
-```bash
-translator-rs --clear 3
-```
-
-或者缩写：
 
 ```bash
 translator-rs -c 3
@@ -129,12 +99,6 @@ translator-rs -c 3
 translator-rs --no-original
 ```
 
-或者缩写：
-
-```bash
-translator-rs -n
-```
-
 ### 不自动断句
 
 如果不想自动断句，可以使用选项：
@@ -143,10 +107,12 @@ translator-rs -n
 translator-rs --disable-auto-break
 ```
 
-或者缩写：
+### 某些 Linux 发行版
+
+某些 Linux 发行版上的软件无法自动提取识别选中的文字，可使用如下选项激活 Linux 剪切板功能，之后使用 `ctrl-c` 复制需要翻译的文字即可。
 
 ```bash
-translator-rs -d
+translator-rs --linux-use-clipboard
 ```
 
 ## 为什么不支持 gui 或者 tui？

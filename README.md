@@ -60,9 +60,9 @@ Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X1
 
 ## Option Description
 
-### Change API provider
+### Switch from the default google translate to deepl
 
-The translation API for DeepL is now supported, but requires the user to have an auth key.
+**The translation API for DeepL is now supported, but requires the user to have an auth key.**
 
 ```bash
 translator-rs -a deepl --auth-key xxxxxxxx:xx
@@ -84,12 +84,6 @@ If there is an access timeout, please consider setting a proxy for the translati
 * socks5 proxy
 
 ```bash
-translator-rs --proxy socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
-```
-
-or
-
-```bash
 translator-rs -p socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
 ```
 
@@ -106,12 +100,6 @@ The languages currently supported for translation include.
 If you need to translate into another language rather then default, use the following command to specify `source language` and `target language`.
 
 ```bash
-translator-rs --sourcelanguage Engligh --targetlanguage French
-```
-
-or
-
-```bash
 translator-rs -s Engligh -t French
 ```
 
@@ -120,13 +108,7 @@ translator-rs -s Engligh -t French
 If you think the translation speed is slow, you can use `fast` mode (power consumption may be higher than `slow` mode, the default is `slow` mode).
 
 ```bash
-translator-rs --mode fast
-```
-
-or
-
-```bash
-translator-rs -m fast
+translator-rs -f
 ```
 
 ### Clear Screen Mode
@@ -134,22 +116,10 @@ translator-rs -m fast
 New clear screen mode. The default parameter in this mode clears the previous translations for each `n` translation.
 
 ```bash
-translator-rs --clear
-```
-
-or
-
-```bash
 translator-rs -c
 ```
 
 If you want to clear the screen after three translations, you can use the following command.
-
-```bash
-translator-rs --clear 3
-```
-
-or
 
 ```bash
 translator-rs -c 3
