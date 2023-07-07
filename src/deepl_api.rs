@@ -18,18 +18,14 @@ pub struct DeepLFreeResponse {
     pub translations: Vec<Translation>,
 }
 
-pub async fn translate_free(
+async fn tranlate(
     sl: &str, // source language
     tl: &str, // target language
     translate_string: &str,
     proxy_str: &str,
     auth_key: &str,
+    translate_url: &str,
 ) -> Result<Vec<Item>> {
-    if auth_key == "null" {
-        panic!("Please set auth_key!");
-    }
-
-    let translate_url = format!("https://api-free.deepl.com/v2/translate");
     let translate_string = fliter_long(translate_string);
     let translate_string = fliter_short(&translate_string);
 
@@ -69,6 +65,54 @@ pub async fn translate_free(
         result_vec.push(item);
     }
     Ok(result_vec)
+}
+
+pub async fn translate_free(
+    sl: &str, // source language
+    tl: &str, // target language
+    translate_string: &str,
+    proxy_str: &str,
+    auth_key: &str,
+) -> Result<Vec<Item>> {
+    if auth_key == "null" {
+        panic!("Please set auth_key!");
+    }
+    let translate_url = format!("https://api-free.deepl.com/v2/translate");
+    tranlate(
+        sl,
+        tl,
+        translate_string,
+        proxy_str,
+        auth_key,
+        &translate_url,
+    )
+    .await
+}
+
+pub async fn translate_pro(
+    sl: &str, // source language
+    tl: &str, // target language
+    translate_string: &str,
+    proxy_str: &str,
+    auth_key: &str,
+) -> Result<Vec<Item>> {
+    if auth_key == "null" {
+        panic!("Please set auth_key!");
+    }
+
+    if auth_key == "null" {
+        panic!("Please set auth_key!");
+    }
+    let translate_url = format!("https://api.deepl.com/v2/translate");
+    tranlate(
+        sl,
+        tl,
+        translate_string,
+        proxy_str,
+        auth_key,
+        &translate_url,
+    )
+    .await
 }
 
 // #[cfg(test)]

@@ -164,7 +164,7 @@ pub fn convert_language<'a>(
             convert_language
         }
         _ => panic!("Unsupport api provider!"),
-    };  
+    };
     let sl_result = convert_language(source_language);
     let tl_result = convert_language(target_language);
     (sl_result, tl_result)

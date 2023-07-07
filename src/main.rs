@@ -10,7 +10,7 @@ mod google_api;
 mod utils;
 // mod youdao_api;
 
-use deepl_api::translate_free;
+use deepl_api::{translate_free, translate_pro};
 use google_api::{translate_longstring, translate_shortword};
 use utils::{convert_language, get_text};
 
@@ -89,7 +89,13 @@ async fn translate<'a>(
                 vec![]
             }
         },
-        "youdao" => Vec::new(),
+        "deeplpro" => match translate_pro(sl, tl, translate_string, proxy_str, auth_key).await {
+            Ok(t) => t,
+            Err(e) => {
+                println!("translate failed: {}", e);
+                vec![]
+            }
+        },
         _ => panic!("Unsupported API provider"),
     };
     // println!("{:?}", result_vec);
@@ -305,7 +311,7 @@ async fn main() -> Result<()> {
             }
         }
     } else if cfg!(target_os = "windows") {
-        println!("Working...");
+        println!("{}{}{}", "Working with ", api, "...");
         let mut sub_clear = clear_times;
         loop {
             thread::sleep(sleep_time);
