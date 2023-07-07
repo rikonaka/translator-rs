@@ -156,8 +156,8 @@ impl TranslateRets<'_> {
             // windows part
             #[cfg(target_os = "windows")]
             match proxy_str {
-                Some(_) => println!(">>> {} {}", translate_title, "=> proxy"),
-                _ => println!(">>> {}", translate_title),
+                "null" => println!(">>> {}", translate_title),
+                _ => println!(">>> {} {}", translate_title, "=> proxy"),
             }
             match disable_auto_break {
                 true => {
@@ -201,7 +201,7 @@ impl TranslateRets<'_> {
                                 #[cfg(target_os = "linux")]
                                 println!("[{}] {}", "O".bright_blue().bold(), v.orig);
                                 #[cfg(target_os = "windows")]
-                                println!("[{}] {}", "O", v[1]);
+                                println!("[{}] {}", "O", v.orig);
                             }
                         }
                         println!("[{}] {}", "T".green().bold(), v.trans);
@@ -209,7 +209,7 @@ impl TranslateRets<'_> {
                             #[cfg(target_os = "linux")]
                             println!("[{}] {}", "A".cyan().bold(), v.alter[i]);
                             #[cfg(target_os = "windows")]
-                            println!("[{}] {}", "A", v[i]);
+                            println!("[{}] {}", "A", v.alter[i]);
                         }
                     }
                     #[cfg(target_os = "windows")]
