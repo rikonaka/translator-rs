@@ -75,7 +75,7 @@ If there is an access timeout, please consider setting a proxy for the translati
 translator-rs --proxy socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
 ```
 
-Or.
+or
 
 ```bash
 translator-rs -p socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
@@ -97,7 +97,7 @@ If you need to translate into another language rather then default, use the foll
 translator-rs --sourcelanguage Engligh --targetlanguage French
 ```
 
-Or.
+or
 
 ```bash
 translator-rs -s Engligh -t French
@@ -111,7 +111,7 @@ If you think the translation speed is slow, you can use `fast` mode (power consu
 translator-rs --mode fast
 ```
 
-Or.
+or
 
 ```bash
 translator-rs -m fast
@@ -127,7 +127,7 @@ The default parameter in this mode clears the previous translations for each `n`
 translator-rs --clear
 ```
 
-Or.
+or
 
 ```bash
 translator-rs -c
@@ -139,7 +139,7 @@ If you want to clear the screen after three translations, you can use the follow
 translator-rs --clear 3
 ```
 
-Or.
+or
 
 ```bash
 translator-rs -c 3
