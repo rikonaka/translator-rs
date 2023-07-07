@@ -1,46 +1,55 @@
+use anyhow::Result;
 use chrono::prelude::*;
 use clap::Parser;
-use cli_clipboard;
 use colored::Colorize;
-use reqwest;
-use serde_json;
-use std::error::Error;
-use std::process::Command;
 use std::time::SystemTime;
 use std::{thread, time::Duration};
 
+mod deepl_api;
 mod google_api;
+mod utils;
+mod youdao_api;
 
-const TIMEOUT: u64 = 9;
+use deepl_api::translate_free;
+use google_api::{translate_longstring, translate_shortword};
+use utils::{convert_language, get_text};
+
+const TIMEOUT: u64 = 60;
 
 /// Simple program to translate text
 #[derive(Parser, Debug)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
-    /// source language
-    #[clap(short, long, value_parser, default_value = "English")]
-    sourcelanguage: String,
-    /// target translation language
-    #[clap(short, long, value_parser, default_value = "Chinese")]
-    targetlanguage: String,
-    /// fast mode or slow mode
+    /// Source language
+    #[clap(short, long, default_value = "English")]
+    sl: String,
+    /// Target translation language
+    #[clap(short, long, default_value = "Chinese")]
+    tl: String,
+    /// Fast mode or slow mode
     #[clap(short, long, action)]
     fast_mode: bool,
-    /// proxy set (socks5://192.168.1.1:9000)
-    #[clap(short, long, value_parser, default_value = "null")]
+    /// Proxy set (socks5://192.168.1.1:9000)
+    #[clap(short, long, default_value = "null")]
     proxy: String,
-    /// translate new text and clear the screen
-    #[clap(short, long, value_parser, default_value_t = 0)]
+    /// Translate new text and clear the screen
+    #[clap(short, long, default_value_t = 0)]
     clear: i32,
-    /// show original text or not
+    /// Show original text or not
     #[clap(long, action)]
     no_original: bool,
-    /// auto break the sentence or not
+    /// Auto break the sentence or not
     #[clap(long, action)]
     disable_auto_break: bool,
-    /// linux stop get text from clipboard
+    /// Linux get text from clipboard
     #[clap(long, action)]
     linux_use_clipboard: bool,
+    /// Specify translation API provider
+    #[clap(short, long, default_value = "google")]
+    api: String,
+    /// API auth key
+    #[clap(long, default_value = "null")]
+    auth_key: String,
 }
 
 async fn translate<'a>(
@@ -48,35 +57,45 @@ async fn translate<'a>(
     tl: &'a str,
     translate_string: &'a str,
     index: usize,
-    proxy_str: &'a Option<String>,
-) -> TranslateResult<'a> {
+    proxy_str: &'a str,
+    api: &'a str,
+    auth_key: &'a str,
+) -> TranslateRets<'a> {
     let contains_symbol = |input_string: &str| -> bool { input_string.contains(" ") };
     let start_time = SystemTime::now();
     // let proxy = reqwest::Proxy::http("socks5://192.168.1.1:9000").expect("set proxy failed");
-    let proxy = match proxy_str {
-        Some(s) => Some(reqwest::Proxy::https(s).expect("set proxy failed")),
-        _ => None,
-    };
-    let result_vec = match contains_symbol(translate_string) {
-        true => match google_translate_longstring(sl, tl, translate_string, proxy).await {
-            Ok(r) => r,
+
+    let items = match api {
+        "google" => match contains_symbol(translate_string) {
+            true => match translate_longstring(sl, tl, translate_string, proxy_str).await {
+                Ok(r) => r,
+                Err(e) => {
+                    println!("translate failed: {}", e);
+                    vec![]
+                }
+            },
+            false => match translate_shortword(sl, tl, translate_string, proxy_str).await {
+                Ok(r) => r,
+                Err(e) => {
+                    println!("translate failed: {}", e);
+                    vec![]
+                }
+            },
+        },
+        "deepl" => match translate_free(sl, tl, translate_string, proxy_str, auth_key).await {
+            Ok(t) => t,
             Err(e) => {
                 println!("translate failed: {}", e);
                 vec![]
             }
         },
-        false => match google_translate_shortword(sl, tl, translate_string, proxy).await {
-            Ok(r) => r,
-            Err(e) => {
-                println!("translate failed: {}", e);
-                vec![]
-            }
-        },
+        "youdao" => Vec::new(),
+        _ => panic!("Unsupported API provider"),
     };
     // println!("{:?}", result_vec);
     let end_time = SystemTime::now();
-    TranslateResult {
-        result_vec,
+    TranslateRets {
+        items,
         proxy_str,
         start_time,
         end_time,
@@ -84,20 +103,27 @@ async fn translate<'a>(
     }
 }
 
-pub struct TranslateResult<'a> {
-    result_vec: Vec<Vec<String>>,
-    proxy_str: &'a Option<String>,
+#[derive(Debug)]
+pub struct Item {
+    orig: String,
+    trans: String,
+    alter: Vec<String>,
+}
+
+pub struct TranslateRets<'a> {
+    items: Vec<Item>,
+    proxy_str: &'a str,
     start_time: SystemTime,
     end_time: SystemTime,
     index: usize,
 }
 
-impl TranslateResult<'_> {
+impl TranslateRets<'_> {
     fn show(&self, no_original: bool, disable_auto_break: bool) {
         let start_time = self.start_time;
         let end_time = self.end_time;
         let index = self.index;
-        let result_vec = &self.result_vec;
+        let result_vec = &self.items;
         let proxy_str = self.proxy_str;
 
         let duration = end_time.duration_since(start_time).unwrap();
@@ -114,12 +140,12 @@ impl TranslateResult<'_> {
             // linux part
             #[cfg(target_os = "linux")]
             match proxy_str {
-                Some(_) => println!(
+                "null" => println!(">>> {}", translate_title.on_bright_yellow()),
+                _ => println!(
                     ">>> {} {}",
-                    translate_title.bold().red(),
-                    "=> proxy".bright_purple()
+                    translate_title.on_bright_yellow(),
+                    "=> proxy".on_bright_purple()
                 ),
-                _ => println!(">>> {}", translate_title.bold().red()),
             }
             // windows part
             #[cfg(target_os = "windows")]
@@ -133,12 +159,10 @@ impl TranslateResult<'_> {
                     let mut translate_text = String::new();
                     let mut alter_translate_text = String::new();
                     for v in result_vec {
-                        original_text.push_str(&v[1]);
-                        translate_text.push_str(&v[0]);
-                        if v.len() > 2 {
-                            for i in 2..v.len() {
-                                alter_translate_text.push_str(&v[i]);
-                            }
+                        original_text.push_str(&v.orig);
+                        translate_text.push_str(&v.trans);
+                        for i in 0..v.alter.len() {
+                            alter_translate_text.push_str(&v.alter[i]);
                         }
                     }
                     match no_original {
@@ -169,19 +193,17 @@ impl TranslateResult<'_> {
                             true => (),
                             _ => {
                                 #[cfg(target_os = "linux")]
-                                println!("[{}] {}", "O".bright_blue().bold(), v[1]);
+                                println!("[{}] {}", "O".bright_blue().bold(), v.orig);
                                 #[cfg(target_os = "windows")]
                                 println!("[{}] {}", "O", v[1]);
                             }
                         }
-                        println!("[{}] {}", "T".green().bold(), v[0]);
-                        if v.len() > 2 {
-                            for i in 2..v.len() {
-                                #[cfg(target_os = "linux")]
-                                println!("[{}] {}", "A".cyan().bold(), v[i]);
-                                #[cfg(target_os = "windows")]
-                                println!("[{}] {}", "A", v[i]);
-                            }
+                        println!("[{}] {}", "T".green().bold(), v.trans);
+                        for i in 0..v.alter.len() {
+                            #[cfg(target_os = "linux")]
+                            println!("[{}] {}", "A".cyan().bold(), v.alter[i]);
+                            #[cfg(target_os = "windows")]
+                            println!("[{}] {}", "A", v[i]);
                         }
                     }
                     #[cfg(target_os = "windows")]
@@ -190,147 +212,6 @@ impl TranslateResult<'_> {
             }
         }
     }
-}
-
-fn get_clipboard_text() -> Result<String, Box<dyn Error>> {
-    let output = match cli_clipboard::get_contents() {
-        Ok(o) => o.trim().to_string(),
-        Err(_) => {
-            // println!("get clipboard contents failed: {}", e);
-            return Ok("".to_string());
-        }
-    };
-    if output.len() > 0 {
-        // set the clipboard to null
-        match cli_clipboard::set_contents("".to_owned()) {
-            _ => (),
-        }
-    }
-    return Ok(output);
-}
-
-fn get_select_text_linux() -> Result<String, Box<dyn Error>> {
-    // return "" at least
-    let output = match Command::new("xsel").output() {
-        Ok(o) => o,
-        Err(e) => {
-            println!("Please install xsel first...");
-            return Err(Box::new(e));
-        }
-    };
-    let output = String::from_utf8_lossy(&output.stdout).to_string();
-    // println!("select text linux: {}", &output);
-    if output.trim().len() > 0 {
-        return Ok(output.trim().to_string());
-    } else {
-        return Ok("".to_string());
-    }
-}
-
-struct GetText {
-    text: String,
-    text_type: String,
-}
-
-impl GetText {
-    fn new(text: &str, text_type: &str) -> GetText {
-        let text = text.to_string();
-        let text_type = text_type.to_string();
-        GetText { text, text_type }
-    }
-}
-
-fn get_text(linux_use_clipboard: bool) -> GetText {
-    let filter = |x: &str| -> String {
-        let x = x.trim();
-        let x = match x.strip_prefix(".") {
-            Some(x) => x,
-            _ => x,
-        };
-        let x = match x.strip_prefix(",") {
-            Some(x) => x,
-            _ => x,
-        };
-        x.replace("-\n", "")
-            .replace("%", "%25")
-            .replace("&", "%26")
-            .replace("#", "%23")
-            .replace("\n", " ")
-            .trim()
-            .to_string()
-    };
-    if cfg!(target_os = "linux") {
-        match linux_use_clipboard {
-            true => {
-                let t = match get_select_text_linux() {
-                    Ok(t) => {
-                        // get text from select, if select is none, get from clipboard
-                        let t = t.trim().to_string();
-                        if t.len() > 0 {
-                            t
-                        } else {
-                            match get_clipboard_text() {
-                                Ok(t) => t,
-                                Err(e) => {
-                                    println!("get clipboard text (linux) failed: {}", e);
-                                    "".to_string()
-                                }
-                            }
-                        }
-                    }
-                    Err(e) => {
-                        println!("get clipboard text (linux) failed: {}", e);
-                        "".to_string()
-                    }
-                };
-                let ft = filter(&t);
-                return GetText::new(&ft, "clipboard");
-            }
-            _ => {
-                let t = match get_select_text_linux() {
-                    Ok(t) => {
-                        // only get text from select
-                        t
-                    }
-                    Err(e) => {
-                        println!("get select text (linux) failed: {}", e);
-                        "".to_string()
-                    }
-                };
-                let ft = filter(&t);
-                return GetText::new(&ft, "select");
-            }
-        }
-    } else if cfg!(target_os = "windows") {
-        let t = match get_clipboard_text() {
-            Ok(t) => t,
-            Err(e) => {
-                println!("get select text (windows) failed: {}", e);
-                "".to_string()
-            }
-        };
-        let ft = filter(&t);
-        return GetText::new(&ft, "clipboard");
-    } else {
-        GetText::new("", "clipboard")
-    }
-}
-
-fn convert_args<'a>(source_language: &'a str, target_language: &'a str) -> (&'a str, &'a str) {
-    let convert_language = |x: &str| -> &str {
-        let result = match x {
-            "English" => "en",
-            "Chinese" => "zh-CN",
-            "Japanese" => "ja",
-            "French" => "fr",
-            "German" => "de",
-            _ => "en",
-        };
-        result
-    };
-    let sl_result = convert_language(source_language);
-    let tl_result = convert_language(target_language);
-    (sl_result, tl_result)
 }
 
 #[cfg(test)]
@@ -342,18 +223,17 @@ mod tests {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<()> {
     let mut index: usize = 1;
     let args = Args::parse();
-    let (sl, tl) = convert_args(&args.sourcelanguage, &args.targetlanguage);
+    let api = args.api;
+    let auth_key = args.auth_key;
+    let (sl, tl) = convert_language(&args.sl, &args.tl, &api);
     let sleep_time = match args.fast_mode {
         true => Duration::from_secs_f32(0.3),
         _ => Duration::from_secs(1),
     };
-    let proxy_str = match args.proxy.as_str() {
-        "none" => None,
-        _ => Some(args.proxy),
-    };
+    let proxy_str = args.proxy;
     let clear_times = args.clear;
     // println!("c: {}", clear_times);
     let clear_mode = match clear_times {
@@ -366,7 +246,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let linux_use_clipboard = args.linux_use_clipboard;
     // println!("l: {}", linux_use_clipboard);
     if cfg!(target_os = "linux") {
-        println!("{}", "Working...".bold().yellow());
+        println!("{}{}{}", "Working with ".green(), api.green().bold(), "...".green());
         let mut sub_clear_times = clear_times;
         // let mut last_selected_text = String::from("");
         let mut last_select_texts: String = String::from("");
@@ -413,7 +293,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     sub_clear_times -= 1;
                 }
-                let translate_result = translate(&sl, &tl, &get_text.text, index, &proxy_str).await;
+                let translate_result =
+                    translate(&sl, &tl, &get_text.text, index, &proxy_str, &api, &auth_key).await;
                 translate_result.show(no_original, not_auto_break);
                 index += 1;
             }
@@ -435,8 +316,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     }
                     sub_clear -= 1;
                 }
-                let translate_result =
-                    translate(&sl, &tl, &clipboard_text.text, index, &proxy_str).await;
+                let translate_result = translate(
+                    &sl,
+                    &tl,
+                    &clipboard_text.text,
+                    index,
+                    &proxy_str,
+                    &api,
+                    &auth_key,
+                )
+                .await;
                 translate_result.show(no_original, not_auto_break);
                 index += 1;
             }

@@ -1,28 +1,26 @@
-use chrono::prelude::*;
-use clap::Parser;
-use cli_clipboard;
-use colored::Colorize;
+use crate::utils::{build_proxy, fliter_long, fliter_short};
+use anyhow::Result;
 use reqwest;
 use serde_json;
-use std::error::Error;
-use std::process::Command;
-use std::time::SystemTime;
-use std::{thread, time::Duration};
+use std::time::Duration;
 
-async pub fn google_translate_longstring(
+use crate::Item;
+use crate::TIMEOUT;
+
+pub async fn translate_longstring(
     sl: &str, // source language
     tl: &str, // target language
     translate_string: &str,
-    proxy: Option<reqwest::Proxy>,
-) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
-    let fliter_char = |x: &str| -> String { x.replace("al.", "al") };
+    proxy_str: &str,
+) -> Result<Vec<Item>> {
     let max_loop = 100;
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dt=t&q={}",
         sl,
         tl,
-        fliter_char(translate_string)
+        fliter_long(translate_string)
     );
+    let proxy = build_proxy(proxy_str);
     let client = match proxy {
         Some(p) => reqwest::Client::builder()
             .proxy(p)
@@ -30,7 +28,7 @@ async pub fn google_translate_longstring(
             .expect("proxy client build failed"),
         _ => reqwest::Client::new(),
     };
-    let request_result = client`
+    let request_result = client
         .get(translate_url)
         .timeout(Duration::from_secs(TIMEOUT))
         .send()
@@ -41,7 +39,7 @@ async pub fn google_translate_longstring(
     // println!("{:#?}", request_result);
     // [[["翻译","translate",null,null,10]],null,"en",null,null,null,null,[]]
     let mut i = 0;
-    let mut result_vec: Vec<Vec<String>> = Vec::new();
+    let mut result_vec: Vec<Item> = Vec::new();
     loop {
         let result_string_0 = format!("{}", request_result[0][i][0]);
         let result_string_1 = format!("{}", request_result[0][i][1]);
@@ -53,10 +51,12 @@ async pub fn google_translate_longstring(
                 if string_0.len() == 1 && string_0 == "." {
                     // there is no possible for length of result is 1
                 } else {
-                    let mut tmp_vec: Vec<String> = Vec::new();
-                    tmp_vec.push(string_0);
-                    tmp_vec.push(string_1);
-                    result_vec.push(tmp_vec);
+                    let item = Item {
+                        trans: string_0,
+                        orig: string_1,
+                        alter: Vec::new(),
+                    };
+                    result_vec.push(item);
                 }
             }
         }
@@ -68,38 +68,17 @@ async pub fn google_translate_longstring(
     Ok(result_vec)
 }
 
-async pub fn google_translate_shortword(
+pub async fn translate_shortword(
     sl: &str,
     tl: &str,
     translate_string: &str,
-    proxy: Option<reqwest::Proxy>,
-) -> Result<Vec<Vec<String>>, Box<dyn Error>> {
-    let fliter_char = |x: &str| -> String {
-        x.replace(".", "")
-            .replace(",", "")
-            .replace("?", "")
-            .replace("!", "")
-            .replace(":", "")
-            .replace("\"", "")
-            .replace("(", "")
-            .replace(")", "")
-            .replace("<", "")
-            .replace(">", "")
-            // UTF-8 char
-            .replace("“", "")
-            .replace("”", "")
-            .replace("。", "")
-            .replace("，", "")
-            .replace("：", "")
-            .replace("（", "")
-            .replace("）", "")
-            .replace("《", "")
-            .replace("》", "")
-    };
+    proxy_str: &str,
+) -> Result<Vec<Item>> {
     let translate_url = format!(
         "https://translate.googleapis.com/translate_a/single?client=gtx&sl={}&tl={}&dj=1&dt=t&dt=bd&dt=qc&dt=rm&dt=ex&dt=at&dt=ss&dt=rw&dt=ld&q={}&button&tk=233819.233819",
-        sl, tl, fliter_char(translate_string)
+        sl, tl, fliter_short(translate_string)
     );
+    let proxy = build_proxy(proxy_str);
     let client = match proxy {
         Some(p) => reqwest::Client::builder()
             .proxy(p)
@@ -117,38 +96,66 @@ async pub fn google_translate_shortword(
 
     // println!("{:#?}", request_result);
     // {"sentences":[{"trans":"这","orig":"The","backend":10},{"translit":"Zhè"}],"src":"en","alternative_translations":[{"src_phrase":"The","alternative":[{"word_postproc":"这","score":1000,"has_preceding_space":true,"attach_to_next_token":false,"backends":[10]},{"word_postproc":"该","score":0,"has_preceding_space":true,"attach_to_next_token":false,"backends":[3],"backend_infos":[{"backend":3}]},{"word_postproc":"那个","score":0,"has_preceding_space":true,"attach_to_next_token":false,"backends":[8]}],"srcunicodeoffsets":[{"begin":0,"end":3}],"raw_src_segment":"The","start_pos":0,"end_pos":0}],"confidence":1.0,"spell":{},"ld_result":{"srclangs":["en"],"srclangs_confidences":[1.0],"extended_srclangs":["en"]}}
-    let mut result_vec: Vec<Vec<String>> = Vec::new();
-    let mut tmp_vec: Vec<String> = Vec::new();
-    let trans_string = format!(
+    let mut result_vec: Vec<Item> = Vec::new();
+    let trans = format!(
         "{}",
         request_result.get("sentences").unwrap()[0]
             .get("trans")
             .unwrap()
     );
-    let orig_string = format!(
+    let orig = format!(
         "{}",
         request_result.get("sentences").unwrap()[0]
             .get("orig")
             .unwrap()
     );
-    tmp_vec.push(trans_string.replace("\"", ""));
-    tmp_vec.push(orig_string.replace("\"", ""));
+
     let alter_vec = request_result.get("alternative_translations").unwrap()[0]
         .get("alternative")
         .unwrap();
     let mut i = 0;
+    let mut alter = Vec::new();
     loop {
-        let av = match alter_vec[i].get("word_postproc") {
+        let wp = match alter_vec[i].get("word_postproc") {
             Some(a) => a,
             _ => break,
         };
-        let alter_string = format!("{}", av);
         // jump the first word
         if i != 0 {
-            tmp_vec.push(alter_string.replace("\"", ""));
+            let alter_string = format!("{}", wp);
+            let alter_string = alter_string.replace("\"", "");
+            alter.push(alter_string);
         }
         i += 1;
     }
-    result_vec.push(tmp_vec);
+    let trans = trans.replace("\"", "");
+    let orig = orig.replace("\"", "");
+    let item = Item { trans, orig, alter };
+    result_vec.push(item);
     Ok(result_vec)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[tokio::test]
+    async fn test_google_long() {
+        use crate::utils::convert_language;
+        let sl = "English";
+        let tl = "Chinese";
+        let api = "deepl";
+        let (sl, tl) = convert_language(sl, tl, api);
+        let translate_string = "Hello World!";
+        let proxy_str = "socks5://192.168.1.5:1080";
+        // let proxy_str = "null";
+        let v = translate_longstring(sl, tl, translate_string, proxy_str)
+            .await
+            .unwrap();
+        println!("{:?}", v);
+        let translate_string = "Hello!";
+        let v = translate_shortword(sl, tl, translate_string, proxy_str)
+            .await
+            .unwrap();
+        println!("{:?}", v);
+    }
 }
