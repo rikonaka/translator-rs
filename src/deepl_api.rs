@@ -75,7 +75,7 @@ pub async fn translate_free(
     auth_key: &str,
 ) -> Result<Vec<Item>> {
     if auth_key == "null" {
-        panic!("Please set auth_key!");
+        panic!("please set auth_key");
     }
     let translate_url = format!("https://api-free.deepl.com/v2/translate");
     tranlate(
@@ -97,11 +97,11 @@ pub async fn translate_pro(
     auth_key: &str,
 ) -> Result<Vec<Item>> {
     if auth_key == "null" {
-        panic!("Please set auth_key!");
+        panic!("please set auth_key");
     }
 
     if auth_key == "null" {
-        panic!("Please set auth_key!");
+        panic!("please set auth_key");
     }
     let translate_url = format!("https://api.deepl.com/v2/translate");
     tranlate(

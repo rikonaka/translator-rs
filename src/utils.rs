@@ -25,7 +25,7 @@ pub fn get_select_text_linux() -> Result<String> {
     let output = match Command::new("xsel").output() {
         Ok(o) => o,
         Err(_) => {
-            panic!("Please install xsel first!");
+            panic!("please install xsel");
         }
     };
     let output = String::from_utf8_lossy(&output.stdout).to_string();
@@ -163,7 +163,7 @@ pub fn convert_language<'a>(
             };
             convert_language
         }
-        _ => panic!("Unsupport api provider!"),
+        _ => panic!("unsupport api provider"),
     };
     let sl_result = convert_language(source_language);
     let tl_result = convert_language(target_language);
