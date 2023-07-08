@@ -25,7 +25,7 @@ pub fn get_select_text_linux() -> Result<String> {
     let output = match Command::new("xsel").output() {
         Ok(o) => o,
         Err(_) => {
-            panic!("Please install xsel first...");
+            panic!("Please install xsel first!");
         }
     };
     let output = String::from_utf8_lossy(&output.stdout).to_string();

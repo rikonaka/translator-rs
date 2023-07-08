@@ -96,7 +96,7 @@ async fn translate<'a>(
                 vec![]
             }
         },
-        _ => panic!("Unsupported API provider"),
+        _ => panic!("Unsupported API provider!"),
     };
     // println!("{:?}", result_vec);
     let end_time = SystemTime::now();
