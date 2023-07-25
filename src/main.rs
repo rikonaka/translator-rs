@@ -136,7 +136,7 @@ impl TranslateRets<'_> {
         let dt = Local::now();
         let dt_str = dt.format("%H:%M:%S").to_string();
         let translate_title = format!(
-            "Translate[{}]({}) => {:.3}s",
+            "Translate[{}]({})=>{:.3}s",
             index,
             dt_str,
             duration.as_secs_f32()
@@ -148,7 +148,7 @@ impl TranslateRets<'_> {
             match proxy_str {
                 "null" => println!(">>> {}", translate_title.on_bright_yellow()),
                 _ => println!(
-                    ">>> {} {}",
+                    ">>> {}{}",
                     translate_title.on_bright_yellow(),
                     "=> proxy".on_bright_purple()
                 ),
