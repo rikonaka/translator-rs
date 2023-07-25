@@ -14,7 +14,7 @@ pub struct Translation {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct DeepLFreeResponse {
+pub struct DeepLResponse {
     pub translations: Vec<Translation>,
 }
 
@@ -51,7 +51,7 @@ async fn tranlate(
         .timeout(Duration::from_secs(TIMEOUT))
         .send()
         .await?
-        .json::<DeepLFreeResponse>()
+        .json::<DeepLResponse>()
         .await?;
 
     let mut result_vec = Vec::new();
