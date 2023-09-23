@@ -146,9 +146,14 @@ impl TranslateRets<'_> {
             // linux part
             #[cfg(target_os = "linux")]
             match proxy_str {
-                "null" => println!(">>> {}", translate_title.on_bright_yellow()),
+                "null" => println!(
+                    "{}{}",
+                    ">>>".on_bright_red(),
+                    translate_title.on_bright_yellow()
+                ),
                 _ => println!(
-                    ">>> {}{}",
+                    "{}{}{}",
+                    ">>>".on_bright_red(),
                     translate_title.on_bright_yellow(),
                     "=> proxy".on_bright_purple()
                 ),
