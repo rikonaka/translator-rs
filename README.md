@@ -30,15 +30,9 @@ sudo apt install xsel
 sudo dnf install xsel
 ```
 
-Unpack the Linux package from the [release](https://github.com/rikonaka/translator-rs/releases) page, then place the binary file in `/usr/bin` (any `PATH` directory such `/usr/local/bin` you want).
+### Download binary file
 
-### Self-compiling and installation
-
-Please install the dependencies before compiling（`Debian` and `Ubuntu`）
-
-```bash
-sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
-```
+Download and unpack the package from the [release](https://github.com/rikonaka/translator-rs/releases) page, then place the binary file in `/usr/bin` (any `PATH` directory such `/usr/local/bin` anywhere you want).
 
 ## Usage
 

@@ -14,7 +14,7 @@
 sudo apt install xsel
 ```
 
-将 [release](https://github.com/rikonaka/translator-rs/releases) 页面下的压缩包解压到本地，之后将文件中的二进制文件移动到 `/usr/bin` 下（任何在 `PATH` 中的目录都行），之后运行命令即可：
+之后将 [release](https://github.com/rikonaka/translator-rs/releases) 页面下的压缩包解压到本地，将文件中的二进制文件移动到 `/usr/bin` 下（任何在 `PATH` 中的目录都行），之后运行命令即可：
 
 ```bash
 translator-rs
@@ -29,14 +29,6 @@ translator-rs
 ### 使用
 
 直接点选单词或者一段话既可（在 Ubuntu 22.04 Gnome&Wayland 桌面环境上测试过，还有 Kubuntu22.04 的 Plasma 桌面，其他桌面还没有测试过）。
-
-### 如要自行编译
-
-编译之前请先安装依赖（`Debian` or `Ubuntu`）
-
-```bash
-sudo apt install xsel xcb libx11-xcb-dev libxcb-render-util0-dev libxcb-shape0-dev libxcb-xfixes0-dev
-```
 
 ## 选项说明
 
