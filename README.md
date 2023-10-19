@@ -52,6 +52,10 @@ If not, use the terminal run with following command.
 
 Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X11 desktop environment and Kubuntu22.04 Plasma desktop).
 
+- `O` stands for original text
+- `T` stands for translation text
+- `A` stands for alternative text
+
 ## Option Description
 
 ### Switch translate API
