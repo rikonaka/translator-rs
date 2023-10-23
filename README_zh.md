@@ -36,6 +36,20 @@ translator-rs
 
 ## 选项说明
 
+### 切换翻译 API 服务
+
+默认翻译 API 为 Google translate，如果想切换到 DeepL 的 API，可以使用命令：
+
+```bash
+translator-rs -a deepl --auth-key xxxxxxxx:xx
+```
+
+上面是免费版的，下面是 pro 版的：
+
+```bash
+translator-rs -a deeplpro --auth-key xxxxxxxx:xx
+```
+
 ### 代理选项
 
 根据最新的防火墙规则（GFW）已经将 Google 翻译 API 列入黑名单，所以新增 proxy 选项。所以如果出现访问超时的情况，请考虑为翻译软件设置代理，目前支持代理：

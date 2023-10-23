@@ -87,7 +87,7 @@ translator-rs -p socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
 
 ### Switching translation languages
 
-The languages currently supported for translation include.
+The languages currently supported for translation include, default source language is **English**, and target language is **Chinese**.
 
 * English
 * Chinese
@@ -141,7 +141,7 @@ translator-rs --disable-auto-break
 
 ### Others
 
-Added support for some applications on Linux that do not automatically get selected text. Some Linux applications that do not automatically get the selected text can now automatically translate it after copying the text via `ctrl-c`, like `Zotero`.
+Added support for some applications on Linux that do not automatically get selected text. Some Linux applications (like `Zotero`) have the function of intercepting the text selection system call, please select the text then copying it via `ctrl-c`.
 
 ```bash
 translator-rs --linux-use-clipboard
