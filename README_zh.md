@@ -66,10 +66,15 @@ translator-rs -p socks5://192.168.122.67:1080
 目前支持的翻译语种包含了：
 
 * English
-* Chinese
+* Chinese (Simplified)
+* Chinese (Traditional)
 * Japanese
+* Spanish
+* Russian
+* Korean
 * French
 * German
+* Italian
 
 如有翻译其他语言的需要，请使用如下命令来指定`源语言`和`目标语言`：
 
@@ -122,7 +127,7 @@ translator-rs --disable-auto-break
 某些 Linux 发行版上的软件无法自动提取识别选中的文字，可使用如下选项激活 Linux 剪切板功能，之后使用 `ctrl-c` 复制需要翻译的文字即可。
 
 ```bash
-translator-rs --linux-use-clipboard
+translator-rs --enable-clipboard
 ```
 
 ## 为什么不支持 gui 或者 tui？

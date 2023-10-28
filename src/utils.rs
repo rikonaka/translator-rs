@@ -3,6 +3,8 @@ use cli_clipboard;
 use reqwest::Proxy;
 use std::process::Command;
 
+use crate::errors::UnsupportApiError;
+
 pub fn get_clipboard_text() -> Result<String> {
     let output = match cli_clipboard::get_contents() {
         Ok(o) => o.trim().to_string(),
@@ -20,7 +22,7 @@ pub fn get_clipboard_text() -> Result<String> {
     return Ok(output);
 }
 
-pub fn get_select_text_linux() -> Result<String> {
+pub fn get_select_text() -> Result<String> {
     // return "" at least
     let output = match Command::new("xsel").output() {
         Ok(o) => o,
@@ -37,22 +39,22 @@ pub fn get_select_text_linux() -> Result<String> {
     }
 }
 
-pub struct GetText {
-    pub text: String,
-    pub text_type: String,
+pub struct Text {
+    pub content: String,
+    pub content_type: String,
 }
 
-impl GetText {
-    pub fn new(text: &str, text_type: &str) -> GetText {
-        let text = text.to_string();
-        let text_type = text_type.to_string();
-        GetText { text, text_type }
+impl Text {
+    fn new(content: &str, content_type: &str) -> Text {
+        let content = content.to_string();
+        let content_type = content_type.to_string();
+        Text {
+            content,
+            content_type,
+        }
     }
-}
-
-pub fn get_text(linux_use_clipboard: bool) -> GetText {
-    let filter = |x: &str| -> String {
-        let x = x.trim();
+    fn filter(content: &str) -> String {
+        let x = content.trim();
         let x = match x.strip_prefix(".") {
             Some(x) => x,
             _ => x,
@@ -68,36 +70,22 @@ pub fn get_text(linux_use_clipboard: bool) -> GetText {
             .replace("\n", " ")
             .trim()
             .to_string()
-    };
-    if cfg!(target_os = "linux") {
-        match linux_use_clipboard {
+    }
+    pub fn get_text(use_clipboard: bool) -> Text {
+        match use_clipboard {
             true => {
-                let t = match get_select_text_linux() {
-                    Ok(t) => {
-                        // get text from select, if select is none, get from clipboard
-                        let t = t.trim().to_string();
-                        if t.len() > 0 {
-                            t
-                        } else {
-                            match get_clipboard_text() {
-                                Ok(t) => t,
-                                Err(e) => {
-                                    println!("get clipboard text (linux) failed: {}", e);
-                                    "".to_string()
-                                }
-                            }
-                        }
-                    }
+                let t = match get_clipboard_text() {
+                    Ok(t) => t,
                     Err(e) => {
                         println!("get clipboard text (linux) failed: {}", e);
                         "".to_string()
                     }
                 };
-                let ft = filter(&t);
-                return GetText::new(&ft, "clipboard");
+                let ft = Text::filter(&t);
+                return Text::new(&ft, "clipboard");
             }
-            _ => {
-                let t = match get_select_text_linux() {
+            false => {
+                let t = match get_select_text() {
                     Ok(t) => {
                         // only get text from select
                         t
@@ -107,46 +95,39 @@ pub fn get_text(linux_use_clipboard: bool) -> GetText {
                         "".to_string()
                     }
                 };
-                let ft = filter(&t);
-                return GetText::new(&ft, "select");
+                let ft = Text::filter(&t);
+                return Text::new(&ft, "select");
             }
         }
-    } else if cfg!(target_os = "windows") {
-        let t = match get_clipboard_text() {
-            Ok(t) => t,
-            Err(e) => {
-                println!("get select text (windows) failed: {}", e);
-                "".to_string()
-            }
-        };
-        let ft = filter(&t);
-        return GetText::new(&ft, "clipboard");
-    } else {
-        GetText::new("", "clipboard")
     }
 }
 
-pub fn convert_language<'a>(
-    source_language: &'a str,
-    target_language: &'a str,
-    api: &'a str,
-) -> (&'a str, &'a str) {
-    let convert_language = match api {
+pub fn standardized_lang<'a>(
+    sl: &'a str,  // source language
+    tl: &'a str,  // target language
+    api: &'a str, // api privoder
+) -> Result<(&'a str, &'a str)> {
+    let convert = match api {
         "google" => {
-            let convert_language = |x: &str| -> &str {
+            let converter = |x: &str| -> &str {
                 let result = match x {
                     "English" => "en",
-                    "Chinese" => "zh-CN",
+                    "Chinese (Simplified)" => "zh-CN",
+                    "Chinese (Traditional)" => "zh-TW",
                     "Japanese" => "ja",
+                    "Korean" => "ko",
                     "French" => "fr",
+                    "Russian" => "ru",
                     "German" => "de",
+                    "Spanish" => "es",
+                    "Italian" => "it",
                     _ => "en",
                 };
                 result
             };
-            convert_language
+            converter
         }
-        "deepl" => {
+        "deepl" | "deeplpro" => {
             let convert_language = |x: &str| -> &str {
                 let result = match x {
                     "English" => "EN",
@@ -154,20 +135,24 @@ pub fn convert_language<'a>(
                     "Japanese" => "JA",
                     "French" => "FR",
                     "German" => "DE",
+                    "Korean" => "KO",
+                    "Russian" => "RU",
+                    "Spanish" => "ES",
+                    "Italian" => "IT",
                     "English (American)" => "EN-US",
                     "English (British)" => "EN-GB",
-                    "Chinese (simplified)" => "ZH",
+                    "Chinese (Simplified)" => "ZH",
                     _ => "EN-US",
                 };
                 result
             };
             convert_language
         }
-        _ => panic!("unsupport api provider"),
+        _ => return Err(UnsupportApiError.into()),
     };
-    let sl_result = convert_language(source_language);
-    let tl_result = convert_language(target_language);
-    (sl_result, tl_result)
+    let sl_ret = convert(sl);
+    let tl_ret = convert(tl);
+    Ok((sl_ret, tl_ret))
 }
 
 pub fn fliter_long(input: &str) -> String {

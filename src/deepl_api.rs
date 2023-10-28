@@ -1,10 +1,11 @@
-use crate::utils::{build_proxy, fliter_long, fliter_short};
 use anyhow::Result;
 use reqwest;
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
-use crate::Item;
+use crate::errors::DeepLEmptyAuthKeyError;
+use crate::utils::{build_proxy, fliter_long, fliter_short};
+use crate::TranslateResult;
 use crate::TIMEOUT;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,12 +22,12 @@ pub struct DeepLResponse {
 async fn tranlate(
     sl: &str, // source language
     tl: &str, // target language
-    translate_string: &str,
+    content: &str,
     proxy_str: &str,
     auth_key: &str,
     translate_url: &str,
-) -> Result<Vec<Item>> {
-    let translate_string = fliter_long(translate_string);
+) -> Result<Vec<TranslateResult>> {
+    let translate_string = fliter_long(content);
     let translate_string = fliter_short(&translate_string);
 
     let proxy = build_proxy(proxy_str);
@@ -57,7 +58,7 @@ async fn tranlate(
     let mut result_vec = Vec::new();
     let trans = res.translations;
     for t in trans {
-        let item = Item {
+        let item = TranslateResult {
             trans: t.text,
             orig: translate_string.to_string(),
             alter: Vec::new(),
@@ -70,49 +71,29 @@ async fn tranlate(
 pub async fn translate_free(
     sl: &str, // source language
     tl: &str, // target language
-    translate_string: &str,
+    content: &str,
     proxy_str: &str,
     auth_key: &str,
-) -> Result<Vec<Item>> {
-    if auth_key == "null" {
-        panic!("please set auth_key");
+) -> Result<Vec<TranslateResult>> {
+    if auth_key == "null" || auth_key.len() == 0 {
+        return Err(DeepLEmptyAuthKeyError.into());
     }
     let translate_url = format!("https://api-free.deepl.com/v2/translate");
-    tranlate(
-        sl,
-        tl,
-        translate_string,
-        proxy_str,
-        auth_key,
-        &translate_url,
-    )
-    .await
+    tranlate(sl, tl, content, proxy_str, auth_key, &translate_url).await
 }
 
 pub async fn translate_pro(
     sl: &str, // source language
     tl: &str, // target language
-    translate_string: &str,
+    content: &str,
     proxy_str: &str,
     auth_key: &str,
-) -> Result<Vec<Item>> {
-    if auth_key == "null" {
-        panic!("please set auth_key");
-    }
-
-    if auth_key == "null" {
-        panic!("please set auth_key");
+) -> Result<Vec<TranslateResult>> {
+    if auth_key == "null" || auth_key.len() == 0 {
+        return Err(DeepLEmptyAuthKeyError.into());
     }
     let translate_url = format!("https://api.deepl.com/v2/translate");
-    tranlate(
-        sl,
-        tl,
-        translate_string,
-        proxy_str,
-        auth_key,
-        &translate_url,
-    )
-    .await
+    tranlate(sl, tl, content, proxy_str, auth_key, &translate_url).await
 }
 
 // #[cfg(test)]

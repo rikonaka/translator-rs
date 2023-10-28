@@ -90,10 +90,15 @@ translator-rs -p socks5://YOUR_PROXY_SERVER_IP:YOUR_PROXY_SERVER_PORT
 The languages currently supported for translation include, default source language is **English**, and target language is **Chinese**.
 
 * English
-* Chinese
+* Chinese (Simplified)
+* Chinese (Traditional)
 * Japanese
+* Spanish
+* Russian
+* Korean
 * French
 * German
+* Italian
 
 If you need to translate into another language rather then default, use the following command to specify `source language` and `target language`.
 
@@ -144,7 +149,7 @@ translator-rs --disable-auto-break
 Added support for some applications on Linux that do not automatically get selected text. Some Linux applications (like `Zotero`) have the function of intercepting the text selection system call, please select the text then copying it via `ctrl-c`.
 
 ```bash
-translator-rs --linux-use-clipboard
+translator-rs --enable-clipboard
 ```
 
 ## Why don't you support gui or tui?

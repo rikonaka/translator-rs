@@ -6,13 +6,15 @@ use std::time::SystemTime;
 use std::{thread, time::Duration};
 
 mod deepl_api;
+mod errors;
 mod google_api;
 mod utils;
 // mod youdao_api;
 
 use deepl_api::{translate_free, translate_pro};
+use errors::{UnsupportApiError, UnsupportOsError};
 use google_api::{translate_longstring, translate_shortword};
-use utils::{convert_language, get_text};
+use utils::{standardized_lang, Text};
 
 const TIMEOUT: u64 = 60;
 
@@ -24,7 +26,7 @@ struct Args {
     #[clap(short, long, default_value = "English")]
     sl: String,
     /// Target translation language
-    #[clap(short, long, default_value = "Chinese")]
+    #[clap(short, long, default_value = "Chinese (Simplified)")]
     tl: String,
     /// Fast mode or slow mode
     #[clap(short, long, action)]
@@ -43,7 +45,7 @@ struct Args {
     disable_auto_break: bool,
     /// Linux get text from clipboard
     #[clap(long, action)]
-    linux_use_clipboard: bool,
+    use_clipboard: bool,
     /// Specify translation API provider
     #[clap(short, long, default_value = "google")]
     api: String,
@@ -55,26 +57,26 @@ struct Args {
 async fn translate<'a>(
     sl: &'a str,
     tl: &'a str,
-    translate_string: &'a str,
+    content: &'a str,
     index: usize,
-    proxy_str: &'a str,
+    proxy: &'a str,
     api: &'a str,
     auth_key: &'a str,
-) -> TranslateRets<'a> {
+) -> Result<TranslateResults<'a>> {
     let contains_symbol = |input_string: &str| -> bool { input_string.contains(" ") };
     let start_time = SystemTime::now();
     // let proxy = reqwest::Proxy::http("socks5://192.168.1.1:9000").expect("set proxy failed");
 
-    let items = match api {
-        "google" => match contains_symbol(translate_string) {
-            true => match translate_longstring(sl, tl, translate_string, proxy_str).await {
+    let results = match api {
+        "google" => match contains_symbol(content) {
+            true => match translate_longstring(sl, tl, content, proxy).await {
                 Ok(r) => r,
                 Err(e) => {
                     println!("translate failed: {}", e);
                     vec![]
                 }
             },
-            false => match translate_shortword(sl, tl, translate_string, proxy_str).await {
+            false => match translate_shortword(sl, tl, content, proxy).await {
                 Ok(r) => r,
                 Err(e) => {
                     println!("translate failed: {}", e);
@@ -82,54 +84,55 @@ async fn translate<'a>(
                 }
             },
         },
-        "deepl" => match translate_free(sl, tl, translate_string, proxy_str, auth_key).await {
+        "deepl" => match translate_free(sl, tl, content, proxy, auth_key).await {
             Ok(t) => t,
             Err(e) => {
                 println!("translate failed: {}", e);
                 vec![]
             }
         },
-        "deeplpro" => match translate_pro(sl, tl, translate_string, proxy_str, auth_key).await {
+        "deeplpro" => match translate_pro(sl, tl, content, proxy, auth_key).await {
             Ok(t) => t,
             Err(e) => {
                 println!("translate failed: {}", e);
                 vec![]
             }
         },
-        _ => panic!("unsupported API provider"),
+        _ => return Err(UnsupportApiError.into()),
     };
     // println!("{:?}", result_vec);
     let end_time = SystemTime::now();
-    TranslateRets {
-        items,
-        proxy_str,
+    let trets = TranslateResults {
+        results,
+        proxy_str: proxy,
         start_time,
         end_time,
         index,
-    }
+    };
+    Ok(trets)
 }
 
 #[derive(Debug)]
-pub struct Item {
+pub struct TranslateResult {
     orig: String,
     trans: String,
     alter: Vec<String>,
 }
 
-pub struct TranslateRets<'a> {
-    items: Vec<Item>,
+pub struct TranslateResults<'a> {
+    results: Vec<TranslateResult>,
     proxy_str: &'a str,
     start_time: SystemTime,
     end_time: SystemTime,
     index: usize,
 }
 
-impl TranslateRets<'_> {
+impl TranslateResults<'_> {
     fn show(&self, no_original: bool, disable_auto_break: bool) {
         let start_time = self.start_time;
         let end_time = self.end_time;
         let index = self.index;
-        let result_vec = &self.items;
+        let result_vec = &self.results;
         let proxy_str = self.proxy_str;
 
         let duration = end_time.duration_since(start_time).unwrap();
@@ -143,8 +146,6 @@ impl TranslateRets<'_> {
         );
 
         if result_vec.len() > 0 {
-            // linux part
-            #[cfg(target_os = "linux")]
             match proxy_str {
                 "null" => println!(
                     "{}{}",
@@ -157,12 +158,6 @@ impl TranslateRets<'_> {
                     translate_title.on_bright_yellow(),
                     "=> proxy".on_bright_purple()
                 ),
-            }
-            // windows part
-            #[cfg(target_os = "windows")]
-            match proxy_str {
-                "null" => println!(">>> {}", translate_title),
-                _ => println!(">>> {} {}", translate_title, "=> proxy"),
             }
             match disable_auto_break {
                 true => {
@@ -179,46 +174,27 @@ impl TranslateRets<'_> {
                     match no_original {
                         true => (),
                         _ => {
-                            #[cfg(target_os = "linux")]
                             println!("[{}] {}", "O".bright_blue().bold(), &original_text);
-                            #[cfg(target_os = "windows")]
-                            println!("[{}] {}", "O", &original_text);
                         }
                     }
-                    #[cfg(target_os = "linux")]
                     println!("[{}] {}", "T".green().bold(), &translate_text);
-                    #[cfg(target_os = "windows")]
-                    println!("[{}] {}", "T", &translate_text);
                     if alter_translate_text.len() > 0 {
-                        #[cfg(target_os = "linux")]
                         println!("[{}] {}", "A".cyan().bold(), &alter_translate_text);
-                        #[cfg(target_os = "windows")]
-                        println!("[{}] {}", "A", &alter_translate_text);
                     }
-                    #[cfg(target_os = "windows")]
-                    println!(""); // use the empty line to split two translate result in windows
                 }
                 _ => {
                     for v in result_vec {
                         match no_original {
                             true => (),
                             _ => {
-                                #[cfg(target_os = "linux")]
                                 println!("[{}] {}", "O".bright_blue().bold(), v.orig);
-                                #[cfg(target_os = "windows")]
-                                println!("[{}] {}", "O", v.orig);
                             }
                         }
                         println!("[{}] {}", "T".green().bold(), v.trans);
                         for i in 0..v.alter.len() {
-                            #[cfg(target_os = "linux")]
                             println!("[{}] {}", "A".cyan().bold(), v.alter[i]);
-                            #[cfg(target_os = "windows")]
-                            println!("[{}] {}", "A", v.alter[i]);
                         }
                     }
-                    #[cfg(target_os = "windows")]
-                    println!(""); // use the empty line to split two translate result in windows
                 }
             }
         }
@@ -235,118 +211,79 @@ mod tests {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut index: usize = 1;
+    if cfg!(target_os = "windows") {
+        // only support linux now
+        return Err(UnsupportOsError.into());
+    }
+
     let args = Args::parse();
-    let api = args.api;
-    let auth_key = args.auth_key;
-    let (sl, tl) = convert_language(&args.sl, &args.tl, &api);
+
+    let (sl, tl) = standardized_lang(&args.sl, &args.tl, &args.api)?;
     let sleep_time = match args.fast_mode {
         true => Duration::from_secs_f32(0.3),
         _ => Duration::from_secs(1),
     };
-    let proxy_str = args.proxy;
-    let clear_times = args.clear;
     // println!("c: {}", clear_times);
-    let clear_mode = match clear_times {
+    let clear_mode = match args.clear {
         0 => false,
         _ => true,
     };
-    // println!("clear: {}", clear_times);
-    let no_original = args.no_original;
-    let not_auto_break = args.disable_auto_break;
-    let linux_use_clipboard = args.linux_use_clipboard;
-    // println!("l: {}", linux_use_clipboard);
-    if cfg!(target_os = "linux") {
-        println!(
-            "{}{}{}",
-            "Working with ".green(),
-            api.green().bold(),
-            "...".green()
-        );
-        let mut sub_clear_times = clear_times;
-        // let mut last_selected_text = String::from("");
-        let mut last_select_texts: String = String::from("");
-        let mut last_clipboard_texts: String = String::from("");
-        loop {
-            // worker area
-            thread::sleep(sleep_time);
-            let get_text = get_text(linux_use_clipboard);
-            let condition = if get_text.text.len() > 0 {
-                let ret = if get_text.text != last_clipboard_texts
-                    && get_text.text != last_clipboard_texts
-                {
-                    true
-                } else {
-                    false
-                };
-                match get_text.text_type.as_str() {
-                    "select" => {
-                        if last_select_texts != get_text.text {
-                            last_select_texts = get_text.text.clone();
-                        }
-                    }
-                    _ => {
-                        if last_clipboard_texts != get_text.text {
-                            last_clipboard_texts = get_text.text.clone();
-                        }
-                    }
-                }
-                ret
+
+    // show title
+    println!(
+        "{}{}{}",
+        "Working with ".green(),
+        args.api.green().bold(),
+        "...".green()
+    );
+
+    let mut clear_count = args.clear;
+    // let mut last_selected_text = String::from("");
+    let mut last_text: String = String::from("");
+
+    let mut index: usize = 1;
+    loop {
+        let text = Text::get_text(args.use_clipboard);
+        let avoid_one_content_translate_twice = if text.content.len() > 0 {
+            let ret = if text.content != last_text {
+                true
             } else {
                 false
             };
 
-            if condition {
-                // println!("last: {}", &last_selected_text);
-                // println!("now: {}", &selected_text);
-                if clear_mode {
-                    if sub_clear_times == 0 {
-                        // send a control character to clear the terminal screen
-                        // print!("{}[2J", 27 as char);
-                        // set position the cursor at row 1, column 1
-                        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-                        sub_clear_times = clear_times;
-                    }
-                    sub_clear_times -= 1;
-                }
-                let translate_result =
-                    translate(&sl, &tl, &get_text.text, index, &proxy_str, &api, &auth_key).await;
-                translate_result.show(no_original, not_auto_break);
-                index += 1;
+            if last_text != text.content {
+                last_text = text.content.clone();
             }
-        }
-    } else if cfg!(target_os = "windows") {
-        println!("{}{}{}", "Working with ", api, "...");
-        let mut sub_clear = clear_times;
-        loop {
-            thread::sleep(sleep_time);
-            let clipboard_text = get_text(false);
-            if clipboard_text.text.len() > 0 {
-                if clear_mode {
-                    if sub_clear == 0 {
-                        // send a control character to clear the terminal screen
-                        // print!("{}[2J", 27 as char);
-                        // set position the cursor at row 1, column 1
-                        // print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
-                        sub_clear = clear_times;
-                    }
-                    sub_clear -= 1;
+
+            ret
+        } else {
+            false
+        };
+
+        if avoid_one_content_translate_twice {
+            if clear_mode {
+                if clear_count == 0 {
+                    // send a control character to clear the terminal screen
+                    // print!("{}[2J", 27 as char);
+                    // set position the cursor at row 1, column 1
+                    print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+                    clear_count = args.clear;
                 }
-                let translate_result = translate(
-                    &sl,
-                    &tl,
-                    &clipboard_text.text,
-                    index,
-                    &proxy_str,
-                    &api,
-                    &auth_key,
-                )
-                .await;
-                translate_result.show(no_original, not_auto_break);
-                index += 1;
+                clear_count -= 1;
             }
+            let translate_result = translate(
+                &sl,
+                &tl,
+                &text.content,
+                index,
+                &args.proxy,
+                &args.api,
+                &args.auth_key,
+            )
+            .await?;
+            translate_result.show(args.no_original, args.disable_auto_break);
+            index += 1;
         }
-    } else {
-        panic!("not support running at the other system");
+        thread::sleep(sleep_time);
     }
 }
