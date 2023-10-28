@@ -1,6 +1,6 @@
 # translator-rs
 
-一个用 rust 写的 PDF 论文简单实时翻译，翻译 API 为 Google 提供（主要支持 Linux 用户，Windows 用户也可以用但是貌似有比这还好的软件？），支持单个单词查看详细相似翻译。
+一个用 rust 写的 PDF 论文简单实时翻译，翻译 API 为 Google 提供（从版本 v0.3.6 开始只支持 Linux 用户），支持单个单词查看详细相似翻译。
 
 [![Rust](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml)
 
