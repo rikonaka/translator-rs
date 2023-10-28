@@ -52,6 +52,9 @@ struct Args {
     /// API auth key
     #[clap(long, default_value = "null")]
     auth_key: String,
+    /// Theme (light or dark)
+    #[clap(long, default_value = "light")]
+    theme: String,
 }
 
 async fn translate<'a>(
@@ -60,6 +63,7 @@ async fn translate<'a>(
     content: &'a str,
     index: usize,
     proxy: &'a str,
+    theme: &'a str,
     api: &'a str,
     auth_key: &'a str,
 ) -> Result<TranslateResults<'a>> {
@@ -104,7 +108,8 @@ async fn translate<'a>(
     let end_time = SystemTime::now();
     let trets = TranslateResults {
         results,
-        proxy_str: proxy,
+        proxy,
+        theme,
         start_time,
         end_time,
         index,
@@ -121,7 +126,8 @@ pub struct TranslateResult {
 
 pub struct TranslateResults<'a> {
     results: Vec<TranslateResult>,
-    proxy_str: &'a str,
+    proxy: &'a str,
+    theme: &'a str,
     start_time: SystemTime,
     end_time: SystemTime,
     index: usize,
@@ -133,32 +139,53 @@ impl TranslateResults<'_> {
         let end_time = self.end_time;
         let index = self.index;
         let result_vec = &self.results;
-        let proxy_str = self.proxy_str;
+        let proxy_str = self.proxy;
 
         let duration = end_time.duration_since(start_time).unwrap();
         let dt = Local::now();
         let dt_str = dt.format("%H:%M:%S").to_string();
-        let translate_title = format!(
-            "Translate[{}]({})=>{:.3}s",
-            index,
-            dt_str,
-            duration.as_secs_f32()
-        );
+        let t_str = "Translate";
+        let theme = self.theme;
 
         if result_vec.len() > 0 {
+            let index_str = format!("[{}]", index);
+            let dt_str = format!("({})", dt_str);
+            let dura_str = format!("=>{:.3}s", duration.as_secs_f32());
+            let mut title = match theme {
+                "light" => {
+                    format!(
+                        "{}{}{}{}{}",
+                        ">>>".on_truecolor(243, 56, 42),       // red
+                        t_str.on_truecolor(255, 165, 0),       // orange
+                        index_str.on_truecolor(244, 223, 183), // yellow
+                        dt_str.on_truecolor(148, 215, 199),    // green
+                        dura_str.on_truecolor(124, 176, 250),  // blue
+                    )
+                }
+                "dark" | _ => {
+                    format!(
+                        "{}{}{}{}{}",
+                        ">>>".truecolor(243, 56, 42),       // red
+                        t_str.truecolor(255, 165, 0),       // orange
+                        index_str.truecolor(244, 223, 183), // yellow
+                        dt_str.truecolor(148, 215, 199),    // green
+                        dura_str.truecolor(124, 176, 250),  // blue
+                    )
+                }
+            };
+
             match proxy_str {
-                "null" => println!(
-                    "{}{}",
-                    ">>>".on_bright_red(),
-                    translate_title.on_bright_yellow()
-                ),
-                _ => println!(
-                    "{}{}{}",
-                    ">>>".on_bright_red(),
-                    translate_title.on_bright_yellow(),
-                    "=> proxy".on_bright_purple()
-                ),
+                "null" => (),
+                _ => match theme {
+                    "light" => {
+                        title = format!("{}{}", title, "=>proxy".on_truecolor(245, 125, 197))
+                    }
+                    "dark" | _ => {
+                        title = format!("{}{}", title, "=>proxy".truecolor(245, 125, 197))
+                    }
+                },
             }
+            println!("{}", title);
             match disable_auto_break {
                 true => {
                     let mut original_text = String::new();
@@ -277,6 +304,7 @@ async fn main() -> Result<()> {
                 &text.content,
                 index,
                 &args.proxy,
+                &args.theme,
                 &args.api,
                 &args.auth_key,
             )
