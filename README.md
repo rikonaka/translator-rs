@@ -62,11 +62,11 @@ Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X1
 
 We offer two color scheme options
 
-Light
+**Light**
 
 ![light](./vids/theme_light.png)
 
-Dark
+**Dark**
 
 ![dark](./vids/theme_dark.png)
 

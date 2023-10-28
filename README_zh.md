@@ -40,11 +40,11 @@ translator-rs
 
 提供两种配色方案选择
 
-Light
+**Light**
 
 ![light](./vids/theme_light.png)
 
-Dark
+**Dark**
 
 ![dark](./vids/theme_dark.png)
 
