@@ -36,6 +36,18 @@ translator-rs
 
 ## 选项说明
 
+### 配色方案
+
+提供两种配色方案选择
+
+Light
+
+![light](./vids/theme_light.png)
+
+Dark
+
+![dark](./vids/theme_dark.png)
+
 ### 切换翻译 API 服务
 
 默认翻译 API 为 Google translate，如果想切换到 DeepL 的 API，可以使用命令：

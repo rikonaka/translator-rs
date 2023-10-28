@@ -58,6 +58,18 @@ Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X1
 
 ## Option Description
 
+### Theme
+
+We offer two color scheme options
+
+Light
+
+![light](./vids/theme_light.png)
+
+Dark
+
+![dark](./vids/theme_dark.png)
+
 ### Switch translate API
 
 Switch from the default google translate to deepl. The translation API for DeepL is now supported, but requires the user to have an auth key.
