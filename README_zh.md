@@ -96,10 +96,10 @@ translator-rs -s Engligh -t French
 
 ### 加快翻译速度
 
-如果觉得翻译速度慢可以使用 `fast` 模式（功耗可能会比 `slow` 模式高，默认是 `slow` 模式）：
+如果觉得翻译速度慢可以使用 `fast` 模式（功耗可能会比模式高，默认间隔为1.0秒，可以改成0.1秒）：
 
 ```bash
-translator-rs -f
+translator-rs -f 0.1
 ```
 
 新增对 Linux 上某些无法自动获得选取文字应用上的支持。某些无法自动获得选取文字的 Linux 应用现在可以通过 `ctrl-c` 来复制文字之后自动翻译。

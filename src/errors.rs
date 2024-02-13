@@ -6,7 +6,7 @@ use std::fmt;
 pub struct UnsupportApiError;
 impl fmt::Display for UnsupportApiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", "unsupport api")
+        write!(f, "{}", "unsupported api")
     }
 }
 impl Error for UnsupportApiError {}
@@ -16,7 +16,7 @@ impl Error for UnsupportApiError {}
 pub struct UnsupportOsError;
 impl fmt::Display for UnsupportOsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", "unsupport os")
+        write!(f, "{}", "unsupported os")
     }
 }
 impl Error for UnsupportOsError {}

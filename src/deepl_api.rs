@@ -95,21 +95,3 @@ pub async fn translate_pro(
     let translate_url = format!("https://api.deepl.com/v2/translate");
     tranlate(sl, tl, content, proxy_str, auth_key, &translate_url).await
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     #[tokio::test]
-//     async fn test_deepl_free() {
-//         use crate::utils::convert_language;
-//         let sl = "English";
-//         let tl = "Chinese";
-//         let api = "deepl";
-//         let (sl, tl) = convert_language(sl, tl, api);
-//         let translate_string = "Hello";
-//         let auth_key = "null";
-//         let proxy_str = "null";
-//         let v = translate_free(sl, tl, translate_string, proxy_str, auth_key).await;
-//         println!("{:?}", v);
-//     }
-// }

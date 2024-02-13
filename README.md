@@ -120,10 +120,10 @@ translator-rs -s Engligh -t French
 
 ### Faster sampling speed
 
-If you think the translation speed is slow, you can use `fast` mode (power consumption may be higher than `slow` mode, the default is `slow` mode).
+If you think the translation speed is slow, you can use `fast` mode (power consumption may be higher than default mode, default interval is `1.0` sec, you can change it to `0.1` sec).
 
 ```bash
-translator-rs -f
+translator-rs -f 0.1
 ```
 
 ### Clear screen mode

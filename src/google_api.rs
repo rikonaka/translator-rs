@@ -134,28 +134,3 @@ pub async fn translate_shortword(
     result_vec.push(item);
     Ok(result_vec)
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     #[tokio::test]
-//     async fn test_google_long() {
-//         use crate::utils::convert_language;
-//         let sl = "English";
-//         let tl = "Chinese";
-//         let api = "deepl";
-//         let (sl, tl) = convert_language(sl, tl, api);
-//         let translate_string = "Hello World!";
-//         let proxy_str = "socks5://192.168.1.5:1080";
-//         // let proxy_str = "null";
-//         let v = translate_longstring(sl, tl, translate_string, proxy_str)
-//             .await
-//             .unwrap();
-//         println!("{:?}", v);
-//         let translate_string = "Hello!";
-//         let v = translate_shortword(sl, tl, translate_string, proxy_str)
-//             .await
-//             .unwrap();
-//         println!("{:?}", v);
-//     }
-// }

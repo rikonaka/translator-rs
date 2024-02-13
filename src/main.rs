@@ -9,7 +9,6 @@ mod deepl_api;
 mod errors;
 mod google_api;
 mod utils;
-// mod youdao_api;
 
 use deepl_api::{translate_free, translate_pro};
 use errors::{UnsupportApiError, UnsupportOsError};
@@ -29,8 +28,8 @@ struct Args {
     #[clap(short, long, default_value = "Chinese (Simplified)")]
     tl: String,
     /// Fast mode or slow mode
-    #[clap(short, long, action)]
-    fast_mode: bool,
+    #[clap(short, long, default_value_t = 1.0)]
+    fast_mode: f32,
     /// Proxy set (socks5://192.168.1.1:9000)
     #[clap(short, long, default_value = "null")]
     proxy: String,
@@ -238,19 +237,14 @@ mod tests {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    if cfg!(target_os = "windows") {
+    if cfg!(not(target_os = "linux")) {
         // only support linux now
         return Err(UnsupportOsError.into());
     }
 
     let args = Args::parse();
-
     let (sl, tl) = standardized_lang(&args.sl, &args.tl, &args.api)?;
-    let sleep_time = match args.fast_mode {
-        true => Duration::from_secs_f32(0.3),
-        _ => Duration::from_secs(1),
-    };
-    // println!("c: {}", clear_times);
+    let fast_mode_sleep_time = Duration::from_secs_f32(args.fast_mode);
     let clear_mode = match args.clear {
         0 => false,
         _ => true,
@@ -265,7 +259,6 @@ async fn main() -> Result<()> {
     );
 
     let mut clear_count = args.clear;
-    // let mut last_selected_text = String::from("");
     let mut last_text: String = String::from("");
 
     let mut index: usize = 1;
@@ -312,6 +305,6 @@ async fn main() -> Result<()> {
             translate_result.show(args.no_original, args.disable_auto_break);
             index += 1;
         }
-        thread::sleep(sleep_time);
+        thread::sleep(fast_mode_sleep_time);
     }
 }
