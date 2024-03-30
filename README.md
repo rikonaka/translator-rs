@@ -12,7 +12,7 @@ A simple real time translation of PDF papers written in rust for Linux users, wi
 * Long sentence translation with automatic sentence break.
 * Support single word to view detailed similar translation.
 
-![example](./vids/example.gif)
+![example](./vids/example.webm)
 
 ## Installation
 
