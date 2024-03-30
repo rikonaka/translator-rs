@@ -1,5 +1,5 @@
 use anyhow::Result;
-use chrono::prelude::*;
+use chrono::Local;
 use clap::Parser;
 use colored::Colorize;
 use std::time::SystemTime;

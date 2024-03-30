@@ -1,6 +1,6 @@
 [package]
 name = "translator-rs"
-version = "0.3.7"
+version = "0.3.8"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -15,6 +15,5 @@ serde = { version = "^1", features = ["derive"] }
 serde_json = "^1"
 colored = "^2"
 chrono = "^0"
-cli-clipboard = "^0"
 clap = { version = "^4", features = ["derive"] }
 anyhow = "^1"

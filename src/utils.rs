@@ -1,37 +1,30 @@
 use anyhow::Result;
-use cli_clipboard;
 use reqwest::Proxy;
 use std::process::Command;
 
 use crate::errors::UnsupportApiError;
 
 pub fn get_clipboard_text() -> Result<String> {
-    let output = match cli_clipboard::get_contents() {
-        Ok(o) => o.trim().to_string(),
-        Err(_) => {
-            // println!("get clipboard contents failed: {}", e);
-            return Ok("".to_string());
-        }
+    let output = match Command::new("xsel").arg("-b").output() {
+        Ok(o) => o,
+        Err(_) => panic!("please install xsel"),
     };
-    if output.len() > 0 {
-        // set the clipboard to null
-        match cli_clipboard::set_contents("".to_owned()) {
-            _ => (),
-        }
+    let output = String::from_utf8_lossy(&output.stdout).to_string();
+    // println!("clipboard text: {}", &output);
+    if output.trim().len() > 0 {
+        return Ok(output.trim().to_string());
+    } else {
+        return Ok("".to_string());
     }
-    return Ok(output);
 }
 
 pub fn get_select_text() -> Result<String> {
-    // return "" at least
     let output = match Command::new("xsel").output() {
         Ok(o) => o,
-        Err(_) => {
-            panic!("please install xsel");
-        }
+        Err(_) => panic!("please install xsel"),
     };
     let output = String::from_utf8_lossy(&output.stdout).to_string();
-    // println!("select text linux: {}", &output);
+    // println!("select text: {}", &output);
     if output.trim().len() > 0 {
         return Ok(output.trim().to_string());
     } else {
