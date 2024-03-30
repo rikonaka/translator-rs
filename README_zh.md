@@ -4,8 +4,6 @@
 
 [![Rust](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml)
 
-![example](./vids/example.webm)
-
 ## 安装
 
 ### 使用之前请先安装 `xsel`

@@ -12,8 +12,6 @@ A simple real time translation of PDF papers written in rust for Linux users, wi
 * Long sentence translation with automatic sentence break.
 * Support single word to view detailed similar translation.
 
-![example](./vids/example.webm)
-
 ## Installation
 
 Please install the `xsel` package before using it.
