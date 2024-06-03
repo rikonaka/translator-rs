@@ -40,11 +40,11 @@ translator-rs
 
 **Light**
 
-![light](./vids/theme_light.png)
+![light](./images/theme_light.png)
 
 **Dark**
 
-![dark](./vids/theme_dark.png)
+![dark](./images/theme_dark.png)
 
 ### 切换翻译 API 服务
 
