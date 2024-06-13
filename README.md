@@ -1,6 +1,6 @@
 # translator-rs
 
-A simple real time translation of PDF papers written in rust for Linux users, with a translation API for Google. To avoid misunderstandings, rename the program from `rust-translator` to `translator-rs`.
+A simple real time translation of PDF papers written in rust for Windows and Linux users, with a translation API for Google and DeepL. To avoid misunderstandings, rename the program from `rust-translator` to `translator-rs`.
 
 [![Rust](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml)
 
@@ -14,27 +14,31 @@ A simple real time translation of PDF papers written in rust for Linux users, wi
 
 ## Installation
 
+### Linux
+
 Please install the `xsel` package before using it.
 
-### Installation on Debian and Ubuntu
+#### Debian and Ubuntu
 
 ```bash
 sudo apt install xsel
 ```
 
-### Installation on Fedora
+#### Fedora
 
 ```bash
 sudo dnf install xsel
 ```
 
+### Windows
+
+Make sure you have `powershell` on your Windows computer.
+
 ### Download binary file
 
-Download and unpack the package from the [release](https://github.com/rikonaka/translator-rs/releases) page, then place the binary file in `/usr/bin` (any `PATH` directory such `/usr/local/bin` anywhere you want).
+Download and unpack the package from the [release](https://github.com/rikonaka/translator-rs/releases) page.
 
 ## Usage
-
-### Linux
 
 If the binary file is **already in the PATH** directory, you can run the following command directly.
 
@@ -47,6 +51,8 @@ If not, use the terminal run with following command.
 ```bash
 ./translator-rs
 ```
+
+### Note
 
 Click on a word or a paragraph (tested on Ubuntu 22.04 Gnome with Wayland and X11 desktop environment and Kubuntu22.04 Plasma desktop).
 

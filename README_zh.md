@@ -1,16 +1,25 @@
 # translator-rs
 
-一个用 rust 写的 PDF 论文简单实时翻译，翻译 API 为 Google 提供（从版本 v0.3.6 开始只支持 Linux 用户），支持单个单词查看详细相似翻译。
+一个用 rust 写的 PDF 论文简单实时翻译，翻译 API 为 Google 和 DeepL 提供，支持单个单词查看详细相似翻译。
 
 [![Rust](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/rikonaka/translator-rs/actions/workflows/rust.yml)
 
 ## 安装
 
-### 使用之前请先安装 `xsel`
+### Linux
+
+使用之前请先安装 `xsel`
 
 ```bash
 sudo apt install xsel
 ```
+
+### Windows
+
+请确保机器上有 `powershell`
+
+
+### 运行
 
 之后将 [release](https://github.com/rikonaka/translator-rs/releases) 页面下的压缩包解压到本地，将文件中的二进制文件移动到 `/usr/bin` 下（任何在 `PATH` 中的目录都行），之后运行命令即可：
 

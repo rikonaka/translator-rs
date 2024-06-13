@@ -2,18 +2,23 @@ use anyhow::Result;
 use chrono::Local;
 use clap::Parser;
 use colored::Colorize;
+use std::thread;
+use std::time::Duration;
 use std::time::SystemTime;
-use std::{thread, time::Duration};
 
 mod deepl_api;
 mod errors;
 mod google_api;
 mod utils;
 
-use deepl_api::{translate_free, translate_pro};
-use errors::{UnsupportApiError, UnsupportOsError};
-use google_api::{translate_longstring, translate_shortword};
-use utils::{standardized_lang, Text};
+use deepl_api::translate_free;
+use deepl_api::translate_pro;
+use errors::UnsupportApiError;
+use errors::UnsupportOsError;
+use google_api::translate_longstring;
+use google_api::translate_shortword;
+use utils::standardized_lang;
+use utils::Text;
 
 const TIMEOUT: u64 = 60;
 
@@ -237,8 +242,7 @@ mod tests {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    if cfg!(not(target_os = "linux")) {
-        // only support linux now
+    if cfg!(not(target_os = "linux")) && cfg!(not(target_os = "windows")) {
         return Err(UnsupportOsError.into());
     }
 

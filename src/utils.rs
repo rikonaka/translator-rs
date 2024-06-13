@@ -4,7 +4,7 @@ use std::process::Command;
 
 use crate::errors::UnsupportApiError;
 
-pub fn get_clipboard_text() -> Result<String> {
+fn get_clipboard_text_linux() -> Result<String> {
     let output = match Command::new("xsel").arg("-b").output() {
         Ok(o) => o,
         Err(_) => panic!("please install xsel"),
@@ -18,7 +18,31 @@ pub fn get_clipboard_text() -> Result<String> {
     }
 }
 
-pub fn get_select_text() -> Result<String> {
+fn get_clipboard_text_windows() -> Result<String> {
+    let output = match Command::new("powershell").args(["-Command", "Get-Clipboard"]).output() {
+        Ok(o) => o,
+        Err(_) => panic!("run command Get-Clipboard failed"),
+    };
+    let output = String::from_utf8_lossy(&output.stdout).to_string();
+    // println!("select text: {}", &output);
+    if output.trim().len() > 0 {
+        return Ok(output.trim().to_string());
+    } else {
+        return Ok("".to_string());
+    }
+}
+
+pub fn get_clipboard_text() -> Result<String> {
+    if cfg!(target_os = "linux") {
+        get_clipboard_text_linux()
+    } else if cfg!(target_os = "windows") {
+        get_clipboard_text_windows()
+    } else {
+        Ok(String::new())
+    }
+}
+
+fn get_select_text_linux() -> Result<String> {
     let output = match Command::new("xsel").output() {
         Ok(o) => o,
         Err(_) => panic!("please install xsel"),
@@ -29,6 +53,14 @@ pub fn get_select_text() -> Result<String> {
         return Ok(output.trim().to_string());
     } else {
         return Ok("".to_string());
+    }
+}
+
+pub fn get_select_text() -> Result<String> {
+    if cfg!(target_os = "linux") {
+        get_select_text_linux()
+    } else {
+        Ok(String::new())
     }
 }
 
@@ -70,7 +102,7 @@ impl Text {
                 let t = match get_clipboard_text() {
                     Ok(t) => t,
                     Err(e) => {
-                        println!("get clipboard text (linux) failed: {}", e);
+                        println!("get clipboard text failed: {}", e);
                         "".to_string()
                     }
                 };
@@ -84,7 +116,7 @@ impl Text {
                         t
                     }
                     Err(e) => {
-                        println!("get select text (linux) failed: {}", e);
+                        println!("get select text failed: {}", e);
                         "".to_string()
                     }
                 };
