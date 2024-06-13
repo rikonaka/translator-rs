@@ -6,5 +6,9 @@ cargo build --release --target x86_64-unknown-linux-musl
 # echo "build target aarch64-unknown-linux-gnu"
 # cargo build --release --target aarch64-unknown-linux-gnu
 
-rm ./translator-rs-x86_64-unknown-linux-musl.zip
-zip -j ./translator-rs-x86_64-unknown-linux-musl.zip ./target/x86_64-unknown-linux-musl/release/translator-rs
+muslfile="./translator-rs-x86_64-unknown-linux-musl.zip"
+
+if [ -f "$muslfile" ]; then
+    rm $muslfile
+fi
+zip -j $muslfile ./target/x86_64-unknown-linux-musl/release/translator-rs
