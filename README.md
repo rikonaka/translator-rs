@@ -175,9 +175,3 @@ Added support for some applications on Linux that do not automatically get selec
 ```bash
 translator-rs --use-clipboard
 ```
-
-## Why don't you support gui or tui?
-
-Do not want to waste time in this area, can meet the use of the line 😘, in fact, there is no need for this.
-
-You are welcome to submit any code to improve the program.
