@@ -42,6 +42,8 @@ Download and unpack the package from the [release](https://github.com/rikonaka/t
 
 If the binary file is **already in the PATH** directory, you can run the following command directly.
 
+### Linux
+
 ```bash
 translator-rs
 ```
@@ -50,6 +52,12 @@ If not, use the terminal run with following command.
 
 ```bash
 ./translator-rs
+```
+
+### Windows
+
+```bash
+./transaltor-rs.exe --use-clipboard
 ```
 
 ### Note
@@ -165,7 +173,7 @@ translator-rs --disable-auto-break
 Added support for some applications on Linux that do not automatically get selected text. Some Linux applications (like `Zotero`) have the function of intercepting the text selection system call, please select the text then copying it via `ctrl-c`.
 
 ```bash
-translator-rs --enable-clipboard
+translator-rs --use-clipboard
 ```
 
 ## Why don't you support gui or tui?
