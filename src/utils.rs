@@ -19,7 +19,10 @@ fn get_clipboard_text_linux() -> Result<String> {
 }
 
 fn get_clipboard_text_windows() -> Result<String> {
-    let output = match Command::new("powershell").args(["-Command", "Get-Clipboard"]).output() {
+    let output = match Command::new("powershell")
+        .args(["-Command", "Get-Clipboard"])
+        .output()
+    {
         Ok(o) => o,
         Err(_) => panic!("run command Get-Clipboard failed"),
     };
@@ -66,17 +69,12 @@ pub fn get_select_text() -> Result<String> {
 
 pub struct Text {
     pub content: String,
-    pub content_type: String,
 }
 
 impl Text {
-    fn new(content: &str, content_type: &str) -> Text {
+    fn new(content: &str) -> Text {
         let content = content.to_string();
-        let content_type = content_type.to_string();
-        Text {
-            content,
-            content_type,
-        }
+        Text { content }
     }
     fn filter(content: &str) -> String {
         let x = content.trim();
@@ -107,7 +105,7 @@ impl Text {
                     }
                 };
                 let ft = Text::filter(&t);
-                return Text::new(&ft, "clipboard");
+                return Text::new(&ft);
             }
             false => {
                 let t = match get_select_text() {
@@ -121,7 +119,7 @@ impl Text {
                     }
                 };
                 let ft = Text::filter(&t);
-                return Text::new(&ft, "select");
+                return Text::new(&ft);
             }
         }
     }
