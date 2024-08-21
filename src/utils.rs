@@ -70,7 +70,7 @@ pub fn get_select_text() -> Result<String> {
 pub struct SelectText {}
 
 impl SelectText {
-    pub fn get_select(use_clipboard: bool) -> String {
+    pub fn get(use_clipboard: bool) -> String {
         fn filter(content: &str) -> String {
             let x = content.trim();
             let x = match x.strip_prefix(".") {

@@ -267,7 +267,7 @@ async fn main() -> Result<()> {
 
     let mut index: usize = 1;
     loop {
-        let text = SelectText::get_select(args.use_clipboard);
+        let text = SelectText::get(args.use_clipboard);
         let avoid_one_text_translate_twice = if text.len() > 0 {
             let ret = if text != last_text { true } else { false };
 
