@@ -35,7 +35,7 @@ fn get_clipboard_text_windows() -> Result<String> {
     }
 }
 
-pub fn get_clipboard_text() -> Result<String> {
+pub fn get_clipboard() -> Result<String> {
     if cfg!(target_os = "linux") {
         get_clipboard_text_linux()
     } else if cfg!(target_os = "windows") {
@@ -67,45 +67,40 @@ pub fn get_select_text() -> Result<String> {
     }
 }
 
-pub struct Text {
-    pub content: String,
-}
+pub struct SelectText {}
 
-impl Text {
-    fn new(content: &str) -> Text {
-        let content = content.to_string();
-        Text { content }
-    }
-    fn filter(content: &str) -> String {
-        let x = content.trim();
-        let x = match x.strip_prefix(".") {
-            Some(x) => x,
-            _ => x,
-        };
-        let x = match x.strip_prefix(",") {
-            Some(x) => x,
-            _ => x,
-        };
-        x.replace("-\n", "")
-            .replace("%", "%25")
-            .replace("&", "%26")
-            .replace("#", "%23")
-            .replace("\n", " ")
-            .trim()
-            .to_string()
-    }
-    pub fn get_text(use_clipboard: bool) -> Text {
+impl SelectText {
+    pub fn get_select(use_clipboard: bool) -> String {
+        fn filter(content: &str) -> String {
+            let x = content.trim();
+            let x = match x.strip_prefix(".") {
+                Some(x) => x,
+                _ => x,
+            };
+            let x = match x.strip_prefix(",") {
+                Some(x) => x,
+                _ => x,
+            };
+            x.replace("-\n", "")
+                .replace("%", "%25")
+                .replace("&", "%26")
+                .replace("#", "%23")
+                .replace("\n", " ")
+                .trim()
+                .to_string()
+        }
+
         match use_clipboard {
             true => {
-                let t = match get_clipboard_text() {
+                let t = match get_clipboard() {
                     Ok(t) => t,
                     Err(e) => {
                         println!("get clipboard text failed: {}", e);
                         "".to_string()
                     }
                 };
-                let ft = Text::filter(&t);
-                return Text::new(&ft);
+                let ft = filter(&t);
+                ft
             }
             false => {
                 let t = match get_select_text() {
@@ -118,8 +113,8 @@ impl Text {
                         "".to_string()
                     }
                 };
-                let ft = Text::filter(&t);
-                return Text::new(&ft);
+                let ft = filter(&t);
+                ft
             }
         }
     }

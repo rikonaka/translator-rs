@@ -18,7 +18,7 @@ use errors::UnsupportOsError;
 use google_api::translate_longstring;
 use google_api::translate_shortword;
 use utils::standardized_lang;
-use utils::Text;
+use utils::SelectText;
 
 const TIMEOUT: u64 = 60;
 
@@ -267,16 +267,12 @@ async fn main() -> Result<()> {
 
     let mut index: usize = 1;
     loop {
-        let text = Text::get_text(args.use_clipboard);
-        let avoid_one_content_translate_twice = if text.content.len() > 0 {
-            let ret = if text.content != last_text {
-                true
-            } else {
-                false
-            };
+        let text = SelectText::get_select(args.use_clipboard);
+        let avoid_one_text_translate_twice = if text.len() > 0 {
+            let ret = if text != last_text { true } else { false };
 
-            if last_text != text.content {
-                last_text = text.content.clone();
+            if last_text != text {
+                last_text = text.clone();
             }
 
             ret
@@ -284,7 +280,7 @@ async fn main() -> Result<()> {
             false
         };
 
-        if avoid_one_content_translate_twice {
+        if avoid_one_text_translate_twice {
             if clear_mode {
                 if clear_count == 0 {
                     // send a control character to clear the terminal screen
@@ -298,7 +294,7 @@ async fn main() -> Result<()> {
             let translate_result = translate(
                 &sl,
                 &tl,
-                &text.content,
+                &text,
                 index,
                 &args.proxy,
                 &args.theme,
